@@ -58,11 +58,20 @@ sub eval_one_round {
         }
     }
 }
-
-my $rounds = 0;
-while (!defined($val{a}) && $rounds <= (keys %rule)) {
-    eval_one_round();
-    $rounds++;
+sub probe_wire {
+    my ($wanted) = @_;
+    my $rounds = 0;
+    while (!defined($val{$wanted}) && $rounds <= (keys %rule)) {
+        eval_one_round();
+        $rounds++;
+    }
+    return $val{$wanted};
 }
 
-say "Part 1: $val{a}";
+
+say "Part 1: " . probe_wire("a");
+
+$rule{b} = [$val{a}];
+%val = ();
+say "Part 2: " . probe_wire("a");
+
