@@ -42,10 +42,10 @@ for my $p ($first_permutation .. $last_permutation) {
     $path_length{$p} = compute_path_length(\%distance, [map { $destinations[$_] } @p]);
 }
 
-my ($min_distance, $min_path);
+my ($min_distance, $min_path, $max_distance, $max_path);
 my @paths = keys %path_length;
-$min_path = pop(@paths);
-$min_distance = $path_length{$min_path};
+$max_path = $min_path = pop(@paths);
+$max_distance = $min_distance = $path_length{$min_path};
 
 while(@paths) {
     my $p = pop(@paths);
@@ -54,6 +54,11 @@ while(@paths) {
         $min_distance = $d;
         $min_path = $p;
     }
+    if ($d > $max_distance) {
+        $max_distance = $d;
+        $max_path = $p;
+    }
 }
 
 say "Min Dinstance: $min_distance : $min_path";
+say "Max Dinstance: $max_distance : $max_path";
