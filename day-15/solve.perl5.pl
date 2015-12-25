@@ -24,6 +24,7 @@ while(<$fh>) {
 close($fh);
 
 my $max = 0;
+my $max2 = 0;
 for my $n1 (1..97) {
     for my $n2 (1..(98-$n1)) {
         for my $n3 (1..(98-$n1-$n2)) {
@@ -33,7 +34,13 @@ for my $n1 (1..97) {
             if ($score > $max) {
                 $max = $score;
             }
+            if ($p[4] == 500) {
+                if ($score > $max2) {
+                    $max2 = $score;
+                }
+            }
         }
     }
 }
 say "Part 1: $max";
+say "Part 2: $max2";
