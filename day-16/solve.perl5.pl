@@ -34,7 +34,7 @@ for my $id (1..500) {
         my $v = $mfcsam{$p};
         if ($v != $a) {
             $reject = 1;
-            last;                
+            last;
         }
     }
     if (!$reject) {
@@ -42,3 +42,32 @@ for my $id (1..500) {
     }
 }
 say "Part 1: $match";
+
+$match = 0;
+for my $id (1..500) {
+    my $reject = 0;
+    for my $p (keys %mfcsam) {
+        defined(my $a = $aunt[$id]{$p}) or next;
+        my $v = $mfcsam{$p};
+        if ($p eq 'cats' || $p eq 'trees') {
+            if ($v >= $a) {
+                $reject = 1;
+                last;
+            }
+        } elsif ($p eq 'pomeranians' || $p eq 'goldfish') {
+            if ($v <= $a) {
+                $reject = 1;
+                last;
+            }
+        } else {
+            if ($v != $a) {
+                $reject = 1;
+                last;
+            }
+        }
+    }
+    if (!$reject) {
+        $match = $id;
+    }
+}
+say "Part 2: $match";
