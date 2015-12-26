@@ -38,6 +38,24 @@ sub mutate {
     return $new_state;
 }
 
+sub turn_on_4_corners {
+    my ($current_state) = @_;
+    my $w = 0 + @$current_state - 1;
+    my $h = 0 + @{$current_state->[0]} - 1;
+    $current_state->[0][0] = 1;
+    $current_state->[0][$h] = 1;
+    $current_state->[$w][0] = 1;
+    $current_state->[$w][$h] = 1;
+    return $current_state;
+}
+
+sub mutate2 {
+    my ($current_state) = @_;
+    my $new_state = mutate($current_state);
+    turn_on_4_corners($new_state);
+    return $new_state;
+}
+
 sub count_lights_on {
     my ($current_state) = @_;
     my $total = 0;
@@ -53,10 +71,15 @@ sub count_lights_on {
     return $total;
 }
 
-my $light_state = load_input();
-
+my $light_state = my $origina_state = load_input();
 for (0..99) {
     $light_state = mutate($light_state);
 }
-
 say "Part 1: " . count_lights_on($light_state);
+
+$light_state = $origina_state;
+turn_on_4_corners($light_state);
+for (0..99) {
+    $light_state = mutate2($light_state);
+}
+say "Part 2: " . count_lights_on($light_state);
