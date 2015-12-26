@@ -12,7 +12,7 @@ my @containers = map {chomp($_); $_} <$fh>;
 close($fh);
 
 my @bitmask_containers = map { 2**$_ } 0..$#containers;
-
+my @combinations;
 my $total_combinations = 0;
 
 for (my $i = 0; $i < 2**(@containers); $i++) {
@@ -24,7 +24,26 @@ for (my $i = 0; $i < 2**(@containers); $i++) {
     }
     if (sum(@choice) == 150) {
         $total_combinations++;
+        push @combinations, \@choice;
     }
 }
 
 say "Part 1: $total_combinations";
+
+my $min = @containers + 1;
+for (@combinations) {
+    my $c = @$_;
+    if ($c < $min) {
+        $min = $c;
+    }
+}
+
+my $count_min = 0;
+for (@combinations) {
+    my $c = @$_;
+    if ($c == $min) {
+        $count_min++;
+    }
+}
+
+say "Part 2: $count_min";
