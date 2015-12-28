@@ -58,13 +58,17 @@ sub solve_part2_breakdown($molecule, %replacements) {
     @mug.push([0, $molecule]);
     my $minstep = Inf;
     my $iter = 0;
+    my $t = time;
+    my $solutions = 0;
     while (@mug.elems > 0) {
-        my ($step, $m) = @mug.pop;
-        say "{$iter++}\t{@mug.elems} ==> $step\t$m";
+        my ($step, $m) = @mug.shift;
         if ($m eq "e") {
-            if ($minstep < $step) {
+            # say "{$iter++}\t{@mug.elems} ==> $step\t$m";
+            $solutions++;
+            if ($minstep > $step) {
                 $minstep = $step;
             }
+            last;
         }
         for @inv_keys -> $b {
             my $a = %inv_replacements{$b};
@@ -75,7 +79,7 @@ sub solve_part2_breakdown($molecule, %replacements) {
             }
         }
     }
-    say "Part 2: $minstep";
+    say "[Breakdown] Part 2: $minstep ({time - $t}s, $solutions solutions)";
 }
 
 sub solve_part2_buildup($molecule, %replacements) {
@@ -83,13 +87,18 @@ sub solve_part2_buildup($molecule, %replacements) {
     @mug.push([0, "e"]);
     my $minstep = Inf;
     my $iter = 0;
+    my %seen;
+    my $solutions = 0;
+    my $t = time;
     while (@mug.elems > 0) {
         my ($step, $m) = @mug.shift;
-        say "{$iter++}\t{@mug.elems} ==> $step\t$m";
         if ($m eq $molecule) {
-            if ($minstep < $step) {
+            # say "{$iter++}\t{@mug.elems} ==> $step\t$m";
+            $solutions++;
+            if ($minstep > $step) {
                 $minstep = $step;
             }
+            last;
         }
 
         for %replacements.keys -> $a {
@@ -103,7 +112,7 @@ sub solve_part2_buildup($molecule, %replacements) {
             }
         }
     }
-    say "Part 2: $minstep";
+    say "[Buildup] Part 2: $minstep ({time - $t}s, $solutions solutions)";
 }
 
 sub MAIN {
