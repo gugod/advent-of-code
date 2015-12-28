@@ -26,8 +26,7 @@ sub locations_of {
     return @loc;
 }
 
-sub MAIN {
-    my ($molecule, %replacements) = load_input();
+sub solve_part1($molecule, %replacements) {
     my $total = 0;
     my $new_molecules = SetHash.new();
     for %replacements.keys -> $a {
@@ -43,4 +42,74 @@ sub MAIN {
         }        
     }
     say "Part 1: {$new_molecules.elems}";
+}
+
+sub solve_part2_breakdown($molecule, %replacements) {
+    my %inv_replacements;
+    for %replacements.keys -> $a {
+        for %replacements{$a}.values -> $b {
+            %inv_replacements{$b} = $a;
+        }
+    }
+
+    my @inv_keys = %inv_replacements.keys.sort: { $^b.chars <=> $^a.chars };
+
+    my @mug;
+    @mug.push([0, $molecule]);
+    my $minstep = Inf;
+    my $iter = 0;
+    while (@mug.elems > 0) {
+        my ($step, $m) = @mug.pop;
+        say "{$iter++}\t{@mug.elems} ==> $step\t$m";
+        if ($m eq "e") {
+            if ($minstep < $step) {
+                $minstep = $step;
+            }
+        }
+        for @inv_keys -> $b {
+            my $a = %inv_replacements{$b};
+            my @loc = locations_of($m, $b);
+            for @loc -> $loc {
+                my $nm = $m.substr(0, $loc) ~ $a ~ $m.substr($loc + $b.chars);
+                @mug.push([$step+1, $nm]);
+            }
+        }
+    }
+    say "Part 2: $minstep";
+}
+
+sub solve_part2_buildup($molecule, %replacements) {
+    my @mug;
+    @mug.push([0, "e"]);
+    my $minstep = Inf;
+    my $iter = 0;
+    while (@mug.elems > 0) {
+        my ($step, $m) = @mug.shift;
+        say "{$iter++}\t{@mug.elems} ==> $step\t$m";
+        if ($m eq $molecule) {
+            if ($minstep < $step) {
+                $minstep = $step;
+            }
+        }
+
+        for %replacements.keys -> $a {
+            for %replacements{$a}.values -> $b {
+                my @loc = locations_of($m, $a);
+                for @loc -> $loc {
+                    my $nm = $m.substr(0, $loc) ~ $b ~ $m.substr($loc + $a.chars);
+                    next if $nm.chars > $molecule.chars;
+                    @mug.push([$step+1, $nm]);
+                }
+            }
+        }
+    }
+    say "Part 2: $minstep";
+}
+
+sub MAIN {
+    my ($molecule, %replacements) = load_input();
+    solve_part1($molecule, %replacements);
+
+    # solve_part2_breakdown($molecule, %replacements);
+    solve_part2_buildup($molecule, %replacements);
 }
