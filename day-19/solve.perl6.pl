@@ -55,7 +55,7 @@ sub common_suffix_length(Str $a, Str $b) {
 
 sub solve_part2_buildup($molecule, %replacements) {
     my @mug;
-    @mug.push([0, "e"]);
+    @mug.push([0, "e", 0, 0]);
 
     my $minstep = Inf;
     my $iter = 0;
@@ -66,21 +66,20 @@ sub solve_part2_buildup($molecule, %replacements) {
     my $known_common_prefix_length = -Inf;
     my $known_common_suffix_length = -Inf;
     while ( @mug.elems > 0) {
-        my ($step, $m) = @mug.shift;
+        my ($step, $m, $cpl, $csl) = @mug.shift;
         $iter++;
 
-        my $cpl = common_prefix_length($m, $molecule);
-        my $csl = common_suffix_length($m, $molecule);
-        if ($cpl > 3 && $csl > 3) {
-            say "$iter: $step \{$known_common_prefix_length $known_common_suffix_length\} ($cpl $csl) {@mug.elems} => $m";
-        }
-
-        if ($m eq $molecule) {
+        if ($m.chars == $molecule.chars && $m eq $molecule) {
             $solutions++;
             if ($minstep > $step) {
                 $minstep = $step;
             }
+            say "$iter: $step \{$known_common_prefix_length $known_common_suffix_length\} {@mug.elems}";
             say "^^^^^^^^ SOLUTION ^^^^^^^^";
+        } else {
+            if ( $cpl == $known_common_prefix_length || $csl == $known_common_suffix_length ) {
+                say "$iter: $step \{$known_common_prefix_length,$known_common_suffix_length\} ($cpl,$csl) {@mug.elems} = $m";
+            }
         }
 
         for %replacements.keys -> $a {
@@ -101,8 +100,13 @@ sub solve_part2_buildup($molecule, %replacements) {
                             $known_common_prefix_length = $common_prefix_length;
                             $good = True;
                         }
+
                         if ($good) {
-                            @mug.push([$step+1, $nm]);
+                            if ( ($common_prefix_length > $known_common_prefix_length) || ($common_suffix_length > $known_common_suffix_length) ) {
+                                @mug.unshift([$step+1, $nm, $common_prefix_length, $common_suffix_length]);
+                            } else {
+                                @mug.push([$step+1, $nm, $common_prefix_length, $common_suffix_length]);
+                            }
                             %seen{$nm} = True;
                         }
                     }
