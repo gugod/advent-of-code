@@ -48,8 +48,12 @@ sub common_prefix_length(Str $a, Str $b) {
     return (1..([min] $a.chars, $b.chars)).reverse.first({ $a.substr(0,$_) eq $b.substr(0,$_) })//-Inf;
 }
 
+sub common_suffix_length(Str $a, Str $b) {
+    return common_prefix_length($a.flip, $b.flip);
+}
+
+
 sub solve_part2_buildup($molecule, %replacements) {
-    my @mug2;
     my @mug;
     @mug.push([0, "e"]);
 
@@ -60,15 +64,15 @@ sub solve_part2_buildup($molecule, %replacements) {
     my %seen;
 
     my $known_common_prefix_length = -Inf;
-    while ( (@mug.elems || @mug2.elems) > 0) {
-        my ($step, $m) = (@mug.elems > 0) ?? @mug.shift !! @mug2.shift;
+    my $known_common_suffix_length = -Inf;
+    while ( @mug.elems > 0) {
+        my ($step, $m) = @mug.shift;
         $iter++;
 
         my $cpl = common_prefix_length($m, $molecule);
-        if ($cpl > 10) {
-            say "$step $cpl $known_common_prefix_length $iter {@mug.elems} {@mug2.elems} ==> ..($cpl)..{$m.substr($cpl)}";            
-        } else {
-            say "$step $cpl $known_common_prefix_length $iter {@mug.elems} {@mug2.elems} ==> $m";
+        my $csl = common_suffix_length($m, $molecule);
+        if ($cpl > 3 && $csl > 3) {
+            say "$iter: $step \{$known_common_prefix_length $known_common_suffix_length\} ($cpl $csl) {@mug.elems} => $m";
         }
 
         if ($m eq $molecule) {
@@ -87,15 +91,20 @@ sub solve_part2_buildup($molecule, %replacements) {
                     next if %seen{$nm};
                     if ($nm.chars <= $molecule.chars) {
                         my $common_prefix_length = common_prefix_length($nm, $molecule);
+                        my $common_suffix_length = common_suffix_length($nm, $molecule);
+                        my $good = False;
+                        if ($common_suffix_length >= $known_common_suffix_length) {
+                            $known_common_suffix_length = $common_suffix_length;
+                            $good = True;
+                        }
                         if ($common_prefix_length >= $known_common_prefix_length) {
                             $known_common_prefix_length = $common_prefix_length;
+                            $good = True;
+                        }
+                        if ($good) {
                             @mug.push([$step+1, $nm]);
                             %seen{$nm} = True;
                         }
-                        # else {
-                        #     @mug2.push([$step+1, $nm]);
-                        #     %seen{$nm} = True;
-                        # }
                     }
                 }
             }
