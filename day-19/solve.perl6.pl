@@ -39,66 +39,44 @@ sub solve_part1($molecule, %replacements) {
                     $total++;
                 }
             }
-        }        
+        }
     }
     say "Part 1: {$new_molecules.elems}";
 }
 
-sub solve_part2_breakdown($molecule, %replacements) {
-    my %inv_replacements;
-    for %replacements.keys -> $a {
-        for %replacements{$a}.values -> $b {
-            %inv_replacements{$b} = $a;
-        }
-    }
-
-    my @inv_keys = %inv_replacements.keys.sort: { $^b.chars <=> $^a.chars };
-
-    my @mug;
-    @mug.push([0, $molecule]);
-    my $minstep = Inf;
-    my $iter = 0;
-    my $t = time;
-    my $solutions = 0;
-    while (@mug.elems > 0) {
-        my ($step, $m) = @mug.shift;
-        if ($m eq "e") {
-            # say "{$iter++}\t{@mug.elems} ==> $step\t$m";
-            $solutions++;
-            if ($minstep > $step) {
-                $minstep = $step;
-            }
-            last;
-        }
-        for @inv_keys -> $b {
-            my $a = %inv_replacements{$b};
-            my @loc = locations_of($m, $b);
-            for @loc -> $loc {
-                my $nm = $m.substr(0, $loc) ~ $a ~ $m.substr($loc + $b.chars);
-                @mug.push([$step+1, $nm]);
-            }
-        }
-    }
-    say "[Breakdown] Part 2: $minstep ({time - $t}s, $solutions solutions)";
+sub common_prefix_length(Str $a, Str $b) {
+    return (1..([min] $a.chars, $b.chars)).reverse.first({ $a.substr(0,$_) eq $b.substr(0,$_) })//-Inf;
 }
 
 sub solve_part2_buildup($molecule, %replacements) {
+    my @mug2;
     my @mug;
     @mug.push([0, "e"]);
+
     my $minstep = Inf;
     my $iter = 0;
-    my %seen;
     my $solutions = 0;
     my $t = time;
-    while (@mug.elems > 0) {
-        my ($step, $m) = @mug.shift;
+    my %seen;
+
+    my $known_common_prefix_length = -Inf;
+    while ( (@mug.elems || @mug2.elems) > 0) {
+        my ($step, $m) = (@mug.elems > 0) ?? @mug.shift !! @mug2.shift;
+        $iter++;
+
+        my $cpl = common_prefix_length($m, $molecule);
+        if ($cpl > 10) {
+            say "$step $cpl $known_common_prefix_length $iter {@mug.elems} {@mug2.elems} ==> ..($cpl)..{$m.substr($cpl)}";            
+        } else {
+            say "$step $cpl $known_common_prefix_length $iter {@mug.elems} {@mug2.elems} ==> $m";
+        }
+
         if ($m eq $molecule) {
-            # say "{$iter++}\t{@mug.elems} ==> $step\t$m";
             $solutions++;
             if ($minstep > $step) {
                 $minstep = $step;
             }
-            last;
+            say "^^^^^^^^ SOLUTION ^^^^^^^^";
         }
 
         for %replacements.keys -> $a {
@@ -106,8 +84,19 @@ sub solve_part2_buildup($molecule, %replacements) {
                 my @loc = locations_of($m, $a);
                 for @loc -> $loc {
                     my $nm = $m.substr(0, $loc) ~ $b ~ $m.substr($loc + $a.chars);
-                    next if $nm.chars > $molecule.chars;
-                    @mug.push([$step+1, $nm]);
+                    next if %seen{$nm};
+                    if ($nm.chars <= $molecule.chars) {
+                        my $common_prefix_length = common_prefix_length($nm, $molecule);
+                        if ($common_prefix_length >= $known_common_prefix_length) {
+                            $known_common_prefix_length = $common_prefix_length;
+                            @mug.push([$step+1, $nm]);
+                            %seen{$nm} = True;
+                        }
+                        # else {
+                        #     @mug2.push([$step+1, $nm]);
+                        #     %seen{$nm} = True;
+                        # }
+                    }
                 }
             }
         }
@@ -117,8 +106,8 @@ sub solve_part2_buildup($molecule, %replacements) {
 
 sub MAIN {
     my ($molecule, %replacements) = load_input();
-    solve_part1($molecule, %replacements);
-
     # solve_part2_breakdown($molecule, %replacements);
     solve_part2_buildup($molecule, %replacements);
+    # solve_part1($molecule, %replacements);
+
 }
