@@ -119,7 +119,6 @@ sub solve_part2_buildup($molecule, %replacements) {
 
 sub MAIN {
     my ($molecule, %replacements) = load_input();
-    # solve_part2_breakdown($molecule, %replacements);
     solve_part2_buildup($molecule, %replacements);
     # solve_part1($molecule, %replacements);
 
