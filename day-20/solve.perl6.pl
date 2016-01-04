@@ -20,25 +20,24 @@ sub presents-one($house) {
 
 multi sub factors(1) { return set(1) }
 multi sub factors(2) { return set(1,2) }
-multi sub factors(3) { return set(1,3) }
 
 multi sub factors($n) {
-    state %memo;
+    state $largest-prime = 13;
+    state @known-primes  = (2,3,5,7,11);
+    state %memo = @known-primes.map: { $_ => set(1,$_) }
     return %memo{$n} if defined(%memo{$n});
 
-    my $f;
-    if ($n %% 2) {
-        my $m = ($n/2).Int;
-        my $fm = factors($m);
-        $f = set 2, $fm.keys, $fm.keys.map({ $_*2 });
-    } elsif ($n %% 3) {
-        my $m = ($n/3).Int;
-        my $fm = factors($m);
-        $f = set 3, $fm.keys, $fm.keys.map({ $_*3 });
-    } else {
-        $f = set((1, (5 .. $n/5).grep({ $n %% $_ }), $n).flat);
+    my $factors;
+    for @known-primes -> $p {
+        if ($n %% $p) {
+            my $m = ($n/$p).Int;
+            my $fm = factors($m);
+            $factors = set $p, $fm.keys, $fm.keys.map({ $_*$p });
+            last;
+        }
     }
-    return %memo{$n} = $f;
+    $factors //=  set((1, ($largest-prime .. $n/$largest-prime).grep({ $n %% $_ }), $n).flat);
+    return %memo{$n} = $factors;
 }
 
 sub presents-two($house) {
@@ -80,4 +79,3 @@ sub solve-part-two($input) {
 my ($input) = open("input").lines;
 solve-part-two($input);
 # solve-part-one($input);
-
