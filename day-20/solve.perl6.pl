@@ -40,12 +40,6 @@ multi sub factors($n) {
     return %memo{$n} = $factors;
 }
 
-sub presents-two($house) {
-    my $f = factors($house);
-    my @elves = $f.keys.grep: { $_ * 50 >= $house };
-    return 11 * ([+] @elves);
-}
-
 sub solve-part-one($input) {
     my $m = -Inf;
     for 1..* {
@@ -61,16 +55,22 @@ sub solve-part-one($input) {
     }
 }
 
+sub superscript(Int $n) { "$n".trans(["0","1","2","3","4","5","6","7","8","9"] => ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"]) }
+
 sub solve-part-two($input) {
     my $m = -Inf;
-    for 4..* {
-        my $p = presents-two($_);
+    for 4..* -> $house {
+        my $f = factors($house);
+        my @elves = $f.keys.grep: { $_ * 50 >= $house };
+        my $p = 11 * ([+] @elves);
+
         if ($p > $m) {
             $m = $p;
-            say "$_ => $p";
+            my %p = $f.keys.grep({.is-prime}).map({ $f = $_; $f => (1..log($house,$_)).reverse.first({ $house %% ($f**$_) }) });
+            say "$house => $p, prime-factors: {%p.keys.sort(&infix:«<=>»).map({ $_ ~ superscript(%p{$_}) })}";
         }
         if $p >= $input {
-            say "Part 1: $_";
+            say "Part 1: $house";
             last;
         }
     }
