@@ -105,9 +105,13 @@ sub solve-part-one($input) {
 
 sub superscript(Int $n) { "$n".trans(["0","1","2","3","4","5","6","7","8","9"] => ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"]) }
 
+sub toStr(%p) {
+    return %p.keys.sort(&infix:«<=>»).map({ $_ ~ superscript(%p{$_}) }).join("");
+}
+
 sub solve-part-two($input) {
     my $m = -Inf;
-    for 786240 -> $house {
+    for 4..* -> $house {
         my $f = factors($house);
         my @elves = $f.keys.grep: { $_ * 50 >= $house };
         my $p = 11 * ([+] @elves);
@@ -115,7 +119,7 @@ sub solve-part-two($input) {
         if ($p > $m) {
             $m = $p;
             my %p = $f.keys.grep({.is-prime}).map({ $f = $_; $f => (1..log($house,$_)).reverse.first({ $house %% ($f**$_) }) });
-            say "$house => $p, prime-factors: {%p.keys.sort(&infix:«<=>»).map({ $_ ~ superscript(%p{$_}) })}";
+            say "$house => $p, prime-factors: { toStr(%p) }";
         }
         if $p >= $input {
             say "Part 1: $house";
@@ -124,23 +128,23 @@ sub solve-part-two($input) {
     }
 }
 
-sub solve-part-two-via-grid-walk($input) {
-    my @primes = (1..9).map({ nth-prime($_) });
+sub solve-part-one-via-grid-walk($input) {
+    my @primes = (1..6).map({ nth-prime($_) });
     my %p = @primes.map: { $_ => 0 };
-    %p{2} = 1;
-    %p{3} = 1;
-    %p{5} = 1;
-    %p{7} = 1;
 
     my $minhouse = Inf;
-    my $info;
+    my %min-p = @primes.map: { $_ => Inf };
+    my $info = "";
     while %p {
-        my $sof = sum-of-factors(%p);
-        my $house = pf2n(%p);
-        if ($input < $sof && $house < $minhouse) {
-            $minhouse = $house;
-            $info = "Part 2: $house $sof {%p.keys.sort(&infix:«<=>»).map({ $_ ~ superscript(%p{$_}) })}";
-            say "Progress.. $info";
+        if (any(@primes.map({ %min-p{$_} > %p{$_} })) == True) {
+            my $sol = sum-of-factors(%p) * 10;
+            my $house = pf2n(%p);
+            if ($input < $sol && $house < $minhouse) {
+                %min-p = %p;
+                $minhouse = $house;
+                $info = "Part 1: $house $sol { toStr(%p) }";
+                say "Progress.. $info";
+            }
         }
         %p = grid-walk-next(%p, @primes, 7);
     }
@@ -148,6 +152,9 @@ sub solve-part-two-via-grid-walk($input) {
 }
 
 my ($input) = open("input").lines;
-solve-part-two-via-grid-walk($input);
+
+solve-part-one-via-grid-walk($input);
+
 # solve-part-two($input);
 # solve-part-one($input);
+
