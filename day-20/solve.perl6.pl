@@ -8,10 +8,15 @@ sub pf2n(%p) {
     return $sum;
 }
 
+multi sub sum-of-factors(Int $prime, Int $power) {
+    state %memo;
+    return %memo{$prime}{$power} //= [+] (0..$power).map({ $prime**$_ });
+}
+
 multi sub sum-of-factors(%p is copy) {
     my $sum = 1;
-    for %p.keys -> $f {
-        $sum *= [+] (0..%p{$f}).map({ $f**$_ });
+    for %p.keys -> $pf {
+        $sum *= sum-of-factors($pf.Int, %p{$pf});
     }
     return $sum;
 }
