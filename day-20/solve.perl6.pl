@@ -151,10 +151,37 @@ sub solve-part-one-via-grid-walk($input) {
     say $info;
 }
 
+sub solve-part-two-via-grid-walk($input) {
+    my @primes = (1..6).map({ nth-prime($_) });
+    my %p = @primes.map: { $_ => 0 };
+
+    my $minhouse = Inf;
+    my %min-p = @primes.map: { $_ => Inf };
+    my $info = "";
+    my $m = Inf;
+    while %p {
+        my $house = pf2n(%p);
+        my $f = factors($house);
+        my @elves = $f.keys.grep: { $_ * 50 >= $house };
+        my $p = 11 * ([+] @elves);
+
+        if $p >= $input && $house < $minhouse {
+            $minhouse = $house;
+            $info = "Part 2: $house $p { toStr(%p) }";
+            say "Progress.. $info";
+        }
+
+        %p = grid-walk-next(%p, @primes, 7);
+    }
+    say $info;
+}
+
 my ($input) = open("input").lines;
 
-solve-part-one-via-grid-walk($input);
 
-# solve-part-two($input);
+solve-part-two-via-grid-walk($input);
+solve-part-one-via-grid-walk($input);
 # solve-part-one($input);
+# solve-part-two($input);
+
 
