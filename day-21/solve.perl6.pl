@@ -75,6 +75,7 @@ sub solve-part-one() {
 
     my @purchase = (0,0,0,0);
 
+    my $max-gold-spent = -Inf;
     my $min-gold-spent = Inf;
     while (@purchase) {
         my $gold-spent = price-of(@purchase);
@@ -85,6 +86,10 @@ sub solve-part-one() {
             if ($gold-spent < $min-gold-spent) {
                 $min-gold-spent = $gold-spent;
             }
+        } else {
+            if ($gold-spent > $max-gold-spent) {
+                $max-gold-spent = $gold-spent;
+            }
         }
 
         @purchase = next-purchase(@purchase);
@@ -93,6 +98,7 @@ sub solve-part-one() {
         }
     }
     say "Part 1: minimum gold spent = $min-gold-spent";
+    say "Part 2: maximum gold spent = $max-gold-spent";
 }
 
 sub MAIN {
