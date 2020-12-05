@@ -1,4 +1,4 @@
 # advent-of-code
 
-my solutions of puzzles in http://adventofcode.com/
+my solutions to the programming puzzles from http://adventofcode.com/
 
