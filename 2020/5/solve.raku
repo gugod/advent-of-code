@@ -9,4 +9,5 @@ my @seats = "input".IO.lines.map(
 say @seats.max;
 
 # Part 2
-say (@seats.min..@seats.max).first(-> $id { $id ∉ @seats });
+my $seats = @seats.Set;
+say (@seats.min..@seats.max).first(-> $id { $id ∉ $seats });
