@@ -1,18 +1,22 @@
 
 class Machine {
-    has $.input;
+    has @.instructions;
+    has Bool $.looped = False;
+    has Bool $.terminated = False;
 
-    has @!instructions;
     has $!accumulator = 0;
     has $!cursor = 0;
     has %!visited;
 
-    method run {
-        @!instructions = "input".IO.lines.map({ .split(" ") }).map(
-        -> @o {
-            Map.new( "op" => @o[0].Str, "arg" => @o[1].Int );
-        });
+    method reset {
+        $!accumulator = 0;
+        $!cursor = 0;
+        %!visited := {};
+        $!looped = False;
+        $!terminated = False;
+    }
 
+    method run {
         my $continue = True;
         while $continue {
             $continue = self.tick();
@@ -22,13 +26,15 @@ class Machine {
     method tick {
         if %!visited{ $!cursor } {
             say "[loop] cursor = $!cursor, accumulator = $!accumulator";
+            $!looped = True;
+            $!terminated = True;
             return False;
         }
 
         %!visited{ $!cursor } = True;
 
         if $!cursor > @!instructions.end {
-            say "Errr...";
+            $!terminated = True;
             return False;
         }
 
@@ -46,8 +52,6 @@ class Machine {
                 $!cursor++;
             }
         }
-
-        say "cursor = $!cursor, accumulator = $!accumulator";
         return True;
     }
 
@@ -56,10 +60,21 @@ class Machine {
 part1();
 # part2();
 
+sub parse-instructions {
+    return "input".IO.lines.map({ .split(" ") }).map(
+        -> @o {
+            Map.new( "op" => @o[0].Str, "arg" => @o[1].Int );
+        }).Array;
+}
+
 sub part2 {
-    ...
+
 }
 
 sub part1 {
-    Machine.new( :input("input") ).run;
+    my @instructions = parse-instructions;
+
+    my $machine = Machine.new( :instructions( @instructions ) );
+    $machine.reset;
+    $machine.run;
 }
