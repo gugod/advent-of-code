@@ -1,7 +1,7 @@
 my @adapters = "input".IO.lines.map: *.Int;
 
-my @deltas = (0, |@adapters).sort.rotor(2 => -1).map({ .[1] - .[0] });
-my %delta-histogram = ({}, 3, |@deltas).reduce({ $^a{$^b}++; $^a });
-say %delta-histogram;
+my @joltages = (0, @adapters.max + 3, |@adapters).sort;
+my @deltas = @joltages.rotor(2 => -1).map({ .[1] - .[0] });
+my %delta-histogram = ({}, |@deltas).reduce({ $^a{$^b}++; $^a });
 
 say "Part 1: " ~ ([*] %delta-histogram<1 3>);
