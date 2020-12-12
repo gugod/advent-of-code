@@ -6,15 +6,17 @@ class ShipSim {
         "y" => 0,
     };
 
+    has @!waypoint = (10, 1);
+
     has %!dirs = (
         'E' => ( 1 ,0),
         'W' => (-1, 0),
-        'S' => ( 0, 1),
-        'N' => ( 0,-1),
+        'S' => ( 0,-1),
+        'N' => ( 0, 1),
     );
 
     method report {
-        return [ %!ship<facing y x> ];
+        return [ @!waypoint, %!ship<facing y x> ];
     }
 
     method manhatten-distance {
@@ -27,24 +29,34 @@ class ShipSim {
                 self.move_forward($value);
             }
             when 'L' {
-                self.turn_left( $value / 90 );
+                self.rotate_waypoint_counterclockwise( $value / 90 );
             }
             when 'R' {
-                self.turn_right( $value / 90 );
+                self.rotate_waypoint_clockwise( $value / 90 );
             }
             when 'N' {
-                self.move_dir( 'N', $value );
+                self.move_waypoint( 'N', $value );
             }
             when 'S' {
-                self.move_dir( 'S', $value );
+                self.move_waypoint( 'S', $value );
             }
             when 'E' {
-                self.move_dir( 'E', $value );
+                self.move_waypoint( 'E', $value );
             }
             when 'W' {
-                self.move_dir( 'W', $value );
+                self.move_waypoint( 'W', $value );
             }
         }
+    }
+
+    method rotate_waypoint_clockwise(Int() $times) {
+        for 1..$times {
+            @!waypoint = @!waypoint[1, 0] <<*>> (1, -1);
+        }
+    }
+
+    method rotate_waypoint_counterclockwise(Int() $times) {
+        self.rotate_waypoint_clockwise(4 - ($times % 4))
     }
 
     method turn_right( Int() $times ) {
@@ -74,15 +86,15 @@ class ShipSim {
     }
 
     method move_forward (Int $steps) {
-        my $move = %!dirs{ %!ship<facing> } >>*>> $steps;
+        my $move = @!waypoint >>*>> $steps;
         %!ship<y> += $move[0];
         %!ship<x> += $move[1];
     }
 
-    method move_dir (Str $dir, Int $steps) {
+    method move_waypoint (Str $dir, Int $steps) {
         my $move = %!dirs{$dir} >>*>> $steps;
-        %!ship<y> += $move[0];
-        %!ship<x> += $move[1];
+        @!waypoint[0] += $move[0];
+        @!waypoint[1] += $move[1];
     }
 };
 
@@ -90,9 +102,10 @@ my $sim = ShipSim.new;
 
 my @instructions = "input".IO.lines.map({ .match(/^ (<[ N S E W L R F ]>) (<digit>+) $/).map: *.Str; });
 
+# say "    \t" ~ $sim.report;
 for @instructions -> ($action, $value) {
     $sim.move($action, $value.Int);
+    # say $action ~ $value ~ "\t" ~ $sim.report;
 }
 
-say $sim.report;
-say "Part 1: " ~ $sim.manhatten-distance;
+say "Mahatten Distance to O: " ~ $sim.manhatten-distance;
