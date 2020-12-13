@@ -1,38 +1,61 @@
 sub MAIN {
     # part1();
-    part2();
+   part2();
+}
+
+sub egcd (Int $a, Int $b) {
+    if $a == 0 {
+        return ($b, 0, 1);
+    }
+    my ($g, $y, $x) = egcd($b % $a, $a);
+    return ($g, $x - ($b div $a) * $y, $y);
+}
+
+sub invmod(Int() $a, Int() $m) {
+    my ($g, $x, $y) = egcd($a, $m);
+
+    if $g != 1 {
+        die "invmod($a,$m) does not exist";
+    }
+
+    return $x % $m;
 }
 
 sub part2 {
-    my @lines = "input".IO.lines.Array;
+    # my @lines = "input".IO.lines.Array;
     # @lines[1] = "1789,37,47,1889";
     # @lines[1] = "67,7,x,59,61";
     # @lines[1] = "67,7,59,61 ";
     # @lines[1] = "17,x,13,19";
 
+    # my $input = "1789,37,47,1889";
+
+    my $input = "19,x,x,x,x,x,x,x,x,41,x,x,x,x,x,x,x,x,x,643,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,17,13,x,x,x,x,23,x,x,x,x,x,x,x,509,x,x,x,x,x,37,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,29";
+
     my @buses;
-    for @lines[1].split(",").pairs -> $it {
+    for $input.split(",").pairs -> $it {
         if $it.value ne "x" {
             @buses.push({ "id" => $it.value.Int, "offset" => $it.key.Int });
         }
     }
 
-    my $leader = @buses.max({ .<id> });
-    say "Buses: " ~ @buses.raku;
-    say "Leader: " ~ $leader.raku;
+    say @buses;
 
-    my $t = (1..*).map(
-        -> $factor {
-            $factor * $leader<id> - $leader<offset>;
-        }
-    ).race(:batch(1000000), :degree(8)).first(
-        -> $t {
-            ! @buses.first(-> $bus { ! ( ($t + $bus<offset>) %% $bus<id> ) }).defined
-            # @buses.map(-> $bus { ($t + $bus<offset>) %% $bus<id> }).all;
-        }
-    );
+    my $M = [*] @buses.map({ .<id> });
 
-    say "Part 2: $t";
+    my $solution = @buses.map(
+        -> $bus {
+            my $m = ($M / $bus<id>);
+            my $a = (-1 * $bus<offset>) % $bus<id>;
+
+            $a * invmod($m, $bus<id>) * $m;
+        }).sum;
+
+    while $solution > $M {
+        $solution -= $M;
+    }
+
+    say "Part 2: " ~ $solution;
 }
 
 sub part1 {
