@@ -9,7 +9,7 @@ sub parse-input {
     my @rules = @paragraphs[0].split("\n").map(
         -> $line {
             my $field = $line.substr(0, $line.index(":"));
-            my @boundaries = $line.comb(/<digit>+/).map({ .Int }).Array;
+            my @boundaries = $line.comb(/<digit>+/).map({ .Int });
 
             {
                 "field" => $field,
@@ -17,10 +17,10 @@ sub parse-input {
                              @boundaries[2]..@boundaries[3] ]
             }
         });
-    my @your-ticket = @paragraphs[1].split("\n").tail.split(",").map({ .Int }).Array;
+    my @your-ticket = @paragraphs[1].split("\n").tail.split(",").map({ .Int });
     my @nearby-tickets = @paragraphs[2].split("\n").Array.splice(1).map(
         -> $line {
-            $line.split(",").map({ .Int }).Array
+            $line.split(",").map({ .Int })
         }
     );
 
