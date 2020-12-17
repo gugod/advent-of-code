@@ -9,21 +9,9 @@ sub conway (%energysrc, Code $nabos) {
 
     my $cycles = 0;
     while $cycles++ < 6 {
-        my @activate;
-        my @deactivate;
-
-        for @active -> $where {
-            if active-nabos(%energysrc, $where, $nabos).elems != 2|3 {
-                @deactivate.push($where)
-            }
-        }
-
+        my @deactivate = @active.race.grep(-> $where { active-nabos(%energysrc, $where, $nabos).elems != 2|3 });
         # Only consider cells next to active cells.
-        for @active.map(-> $where { inactive-nabos(%energysrc, $where, $nabos) }).flat.unique( :with(&[eqv]) ) -> $where {
-            if active-nabos(%energysrc, $where, $nabos) == 3 {
-                @activate.push($where);
-            }
-        }
+        my @activate = @active.race.map(-> $where { inactive-nabos(%energysrc, $where, $nabos) }).flat.unique( :with(&[eqv]) ).grep(-> $where { active-nabos(%energysrc, $where, $nabos) == 3 });
 
         for @activate -> $where {
             %energysrc{$where} = 1;
