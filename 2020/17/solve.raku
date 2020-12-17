@@ -1,6 +1,42 @@
 
 sub MAIN {
     part1;
+    part2;
+}
+
+sub conway (%energysrc, Code $nabos) {
+    my @active = %energysrc.keys;
+
+    my $cycles = 0;
+    while $cycles++ < 6 {
+        my @activate;
+        my @deactivate;
+
+        for @active -> $where {
+            if active-nabos(%energysrc, $where, $nabos).elems != 2|3 {
+                @deactivate.push($where)
+            }
+        }
+
+        # Only consider cells next to active cells.
+        for @active.map(-> $where { inactive-nabos(%energysrc, $where, $nabos) }).flat.unique( :with(&[eqv]) ) -> $where {
+            if active-nabos(%energysrc, $where, $nabos) == 3 {
+                @activate.push($where);
+            }
+        }
+
+        for @activate -> $where {
+            %energysrc{$where} = 1;
+        }
+
+        for @deactivate -> $where {
+            %energysrc{$where}:delete;
+        }
+
+        @active = %energysrc.keys;
+        say "# Cycle $cycles.  active=" ~ @active.elems;
+    }
+    return @active.elems;
 }
 
 sub part1 {
@@ -15,46 +51,41 @@ sub part1 {
         }
     }
 
-    my $cycles = -1;
-    while $cycles++ < 6 {
-        my @active = %energysrc.keys.map({ .split(",").map({ .Int }) });
-        my @activate;
-        my @deactivate;
+    say "Part 1: " ~ conway(%energysrc, &nabos3d);
+}
 
-        for @active -> @xyz {
-            if active-nabos3d(%energysrc, |@xyz).elems != 2|3 {
-                @deactivate.push(@xyz.Array)
+sub part2 {
+    my @lines = "input".IO.lines.Array;
+
+    my %energysrc;
+    for @lines.kv -> $y, $line {
+        for $line.comb.kv -> $x, $v {
+            if $v eq '#' {
+                %energysrc{"$x,$y,0,0"} = 1;
             }
         }
-
-        # Only consider cells next to active cells.
-        for @active.map(-> @xyz { inactive-nabos3d(%energysrc, |@xyz) }).flat.unique( :with(&[eqv]) ) -> @xyz {
-            if active-nabos3d(%energysrc, |@xyz).elems == 3 {
-                @activate.push(@xyz.Array);
-            }
-        }
-
-        for @activate -> @xyz {
-            %energysrc{ @xyz.join(",") } = 1;
-        }
-
-        for @deactivate -> @xyz {
-            %energysrc{ @xyz.join(",") }:delete;
-        }
-
-        say "# Cycle $cycles.  active=" ~ @active.elems;
     }
-    say "Part 1:           ^^^^^^";
+
+    say "Part 1: " ~ conway(%energysrc, &nabos4d);
 }
 
-sub active-nabos3d(%energysrc, Int $x, Int $y, Int $z) {
-    nabo3d($x, $y, $z).grep({ %energysrc{.join(",")}.defined }).Array
+sub active-nabos(%energysrc, $where, Code $nabos) {
+    $nabos($where).grep(-> $w { %energysrc{$w}.defined }).Array
 }
 
-sub inactive-nabos3d(%energysrc, Int $x, Int $y, Int $z) {
-    nabo3d($x, $y, $z).grep({ not %energysrc{.join(",")}.defined }).Array
+sub inactive-nabos(%energysrc, $where, Code $nabos) {
+    $nabos($where).grep(-> $w { not %energysrc{$w}.defined }).Array
 }
 
-sub nabo3d(Int $x, Int $y, Int $z) {
-    ( [$x-1, $x, $x+1] X [$y-1, $y, $y+1] X [$z-1, $z, $z+1]).map(*.Array).grep(-> $xyz { not($xyz eqv [$x,$y,$z]) }).Array;
+use experimental :cached;
+
+sub nabos3d(Str $where) is cached {
+    my ($x,$y,$z) = $where.split(",").map({ .Int });
+    ( [$x-1, $x, $x+1] X [$y-1, $y, $y+1] X [$z-1, $z, $z+1]).map(*.Array).grep(-> $xyz { not($xyz eqv [$x,$y,$z]) }).map({ .join(",") }).Array;
 }
+
+sub nabos4d(Str $where) is cached {
+    my ($x,$y,$z,$w) = $where.split(",").map({ .Int });
+    ( [$x-1, $x, $x+1] X [$y-1, $y, $y+1] X [$z-1, $z, $z+1] X [$w-1, $w, $w+1]).map(*.Array).grep(-> $xyzw { not($xyzw eqv [$x,$y,$z,$w]) }).map({ .join(",") }).Array;
+}
+
