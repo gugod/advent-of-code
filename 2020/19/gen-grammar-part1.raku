@@ -73,20 +73,3 @@ if $parsed {
 } else {
     say "Falied";
 }
-
-# Part2
-my $rulesV2 = $rules.subst("\n8: 42\n", "\n8: 42 | 42 8\n").subst("\n11: 42 31\n", "\n11: 42 31 | 42 11 31\n");
-
-die "subst failed" if $rulesV2 eq $rules;
-
-$parsed = MIBGrammarGrammar.parse(
-    $rulesV2,
-    actions => GenMIBGrammar.new( :name("MIBGrammarV2") )
-);
-
-if $parsed {
-    "MIBGrammarV2.pm6".IO.spurt( $parsed.made );
-    say "OK -- MIBGrammarV2.pm6 is generated.";
-} else {
-    say "Falied";
-}
