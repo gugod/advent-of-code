@@ -64,8 +64,22 @@ class GenMIBGrammar {
 # 1: "a"
 # ', actions => GenMIBGrammar.new);
 
-my $rules = "input".IO.slurp.split("\n\n").head ~ "\n";
-my $parsed = MIBGrammarGrammar.parse($rules, actions => GenMIBGrammar.new);
+my $rules;
+my $parsed;
+
+$rules = "input-example-part2".IO.slurp.split("\n\n").head ~ "\n";
+$parsed = MIBGrammarGrammar.parse($rules, actions => GenMIBGrammar.new(:name("MIBGrammarExamplePart2")));
+
+if $parsed {
+    "MIBGrammarExamplePart2.pm6".IO.spurt( $parsed.made );
+    say "OK -- MIBGrammarExamplePart2.pm6 is generated.";
+} else {
+    say "Falied";
+}
+
+
+$rules = "input".IO.slurp.split("\n\n").head ~ "\n";
+$parsed = MIBGrammarGrammar.parse($rules, actions => GenMIBGrammar.new);
 
 if $parsed {
     "MIBGrammar.pm6".IO.spurt( $parsed.made );
