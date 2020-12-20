@@ -1,28 +1,34 @@
 
 use MIBGrammar;
-
-# 0: 4 1 5
-# 1: 2 3 | 3 2
-# 2: 4 4 | 5 5
-# 3: 4 5 | 5 4
-# 4: "a"
-# 5: "b"
+use MIBGrammarV2;
+use MIBGrammarExamplePart1;
+use MIBGrammarExamplePart2;
+use MIBGrammarExamplePart2Alt;
 
 sub MAIN {
-    example();
-    part1();
+    example-part1();
+    example-part2();
+    example-part2-alt();
+    # example();
+    # part1();
+    # part2();
 }
 
-grammar ExampleMessageGrammerFromMythicalInformationBureau {
-    token TOP { <r4> <r1> <r5> }
-    token r1 { <r2> <r3> | <r3> <r2> }
-    token r2 { <r4> <r4> | <r5> <r5> }
-    token r3 { <r4> <r5> | <r5> <r4> }
-    token r4 { "a" }
-    token r5 { "b" }
-};
+sub count-parsables(@messages, $grammar, $debug = False) {
+    my $parsables = 0;
+    for @messages -> $m {
+        my $parsed = $grammar.parse($m);
+        if $parsed {
+            $parsables++;
+            say "    parsable - $m" if $debug;
+        } else {
+            say "    imparsable - $m" if $debug;
+        }
+    }
+    return $parsables;
+}
 
-sub example {
+sub example-part1 {
     my @messages = (
         "ababbb",
         "bababa",
@@ -31,31 +37,30 @@ sub example {
         "aaaabbb",
     );
 
-    my $parsables = 0;
-    for @messages -> $m {
-        my $parsed = ExampleMessageGrammerFromMythicalInformationBureau.parse($m);
-        if $parsed.defined {
-            $parsables++;
-            say "parsable: $m";
-        } else {
-            say "imparsable: $m";
-        }
-    }
-    say $parsables;
+    my $parsables = count-parsables(@messages, MIBGrammarExamplePart1.new);
+    say "Example in Part 1: $parsables";
 }
 
 sub part1 {
     my @messages = "input".IO.slurp.split("\n\n").tail.split("\n");
+    my $parsables = count-parsables(@messages, MIBGrammar.new);
+    say "Part 1: $parsables";
+}
 
-    my $parsables = 0;
-    for @messages -> $m {
-        my $parsed = MIBGrammar.parse($m);
-        if $parsed {
-            $parsables++;
-            say "parsable - $m";
-        } else {
-            say "imparsable - $m";
-        }
-    }
-    say $parsables;
+sub part2 {
+    my @messages = "input".IO.slurp.split("\n\n").tail.split("\n");
+    my $parsables = count-parsables(@messages, MIBGrammarV2.new);
+    say "Part 2: $parsables";
+}
+
+sub example-part2 {
+    my @messages = "input-example-part2".IO.slurp.split("\n\n").tail.split("\n");
+    my $parsables = count-parsables(@messages, MIBGrammarExamplePart2.new);
+    say "Example in Part 2: $parsables";
+}
+
+sub example-part2-alt {
+    my @messages = "input-example-part2".IO.slurp.split("\n\n").tail.split("\n");
+    my $parsables = count-parsables(@messages, MIBGrammarExamplePart2Alt.new, True);
+    say "Example in Part 2 (Alt): $parsables";
 }
