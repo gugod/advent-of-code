@@ -1,5 +1,6 @@
 sub MAIN {
-    part1;
+    my %tiles = part1;
+    part2(%tiles);
 }
 
 sub part1 {
@@ -18,15 +19,10 @@ sub part1 {
 
             $tile_id => {
                 "id" => $tile_id,
-                "raw" => $raw,
+                "lines" => @lines,
                 "rotate" => 0,
                 "borders" => %borders,
-                "neighbours" => %(
-                    "top"    => Any,
-                    "bottom" => Any,
-                    "left"   => Any,
-                    "right"  => Any,
-                ),
+                "neighbours" => SetHash.new(),
             }
         }
     );
@@ -50,8 +46,8 @@ sub part1 {
     );
 
     for %tiles.values -> $tile {
-        for $tile<neighbours>.pairs {
-            next if .value.defined;
+        next if $tile<neighbours>.elems == 4;
+        for $tile<borders>.pairs {
             my $side = .key;
 
             my $this_border = $tile<borders>{$side};
@@ -60,21 +56,60 @@ sub part1 {
                 .first({ .<border> eq any($this_border, $this_border.flip) });
 
             if ($that_border) {
-                $tile<neighbours>{$side} = True;
-
                 my $that_tile = %tiles{ $that_border<tile_id> };
-                $that_tile<neighbours>{ $that_border<side> } = True;
-            } else {
-                $tile<neighbours>{$side} = False;
+                # say "NEIGHBOUR: $tile<id> and $that_tile<id>";
+                $tile<neighbours>.set($that_tile<id>);
+                $that_tile<neighbours>.set($tile<id>);
             }
         }
     }
 
     my @corners = %tiles.values.grep(
         -> $tile {
-            $tile<neighbours>.values.grep(-> $it { $it == True }).elems == 2
+            $tile<neighbours>.elems == 2
         });
 
-    die "Game over" unless @corners.elems == 4;
     say "Part 1: " ~ [*] @corners.map({ .<id> });
+
+    return %tiles;
+}
+
+sub paste-tile (@canvas, $tile, $y, $x) {
+    for $tile<lines>.keys -> $j {
+        @canvas[$y + $j] //= "";
+        @canvas[$y + $j].substr-rw($x, $tile<lines>[$j].chars) = $tile<lines>[$j];
+    }
+}
+
+sub preview (@canvas) {
+    say "# Canvas";
+    .say for @canvas;
+}
+
+sub part2 (%tiles) {
+    # We assumed the number of tiles is a square numeber.
+    my $width = %tiles.values.elems.sqrt;
+
+    # The canvas we ar painting. An array of String
+    my @canvas;
+
+    # Seam all tiles starting from top-left corner as reference tile,
+    # flip others, never this one.
+    my $cursor-tile = %tiles.values.first(-> $t { $t<neighbours><left top>.none });
+    say $cursor-tile<id>;
+    my $cursor-y = 0;
+    my $cursor-x = 0;
+    paste-tile(@canvas, $cursor-tile, $cursor-y, $cursor-x);
+    $cursor-x += $cursor-tile<lines>[0].chars - 1;
+
+    preview(@canvas);
+
+    # Seam the rest of tiles from top to down (row by row), from left to right.
+
+    while $cursor-tile = $cursor-tile<neighbours><right> {
+        say $cursor-tile<id>;
+        paste-tile(@canvas, $cursor-tile, $cursor-y, $cursor-x);
+        $cursor-x += $cursor-tile<lines>[0].chars - 1;
+        # preview(@canvas);
+    }
 }
