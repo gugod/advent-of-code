@@ -10,7 +10,7 @@ sub part2 {
         }
     );
 
-    my ($winner, $score) = play-recursive-combat(@decks[0], @decks[1], 1);
+    my ($winner, $score) = play-recursive-combat(@decks[0], @decks[1]);
     my $winner-deck = $winner == 1 ?? @decks[0] !! @decks[1];
 
     say "Part 2: $score";
@@ -31,7 +31,7 @@ sub play-recursive-combat(@deck1, @deck2) {
         my $winner;
 
         if $player1-card <= @deck1.elems and $player2-card <= @deck2.elems {
-            ($winner, my $score) = play-recursive-combat(@deck1.head($player1-card), @deck2.head($player2-card), $game-num + 1);
+            ($winner, my $score) = play-recursive-combat(@deck1.head($player1-card).Array, @deck2.head($player2-card).Array);
         } else {
             $winner = $player1-card < $player2-card ?? 2 !! 1;
         }
