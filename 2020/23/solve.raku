@@ -105,5 +105,7 @@ sub part1 {
         $current = $current.follower;
     }
 
-    say "Part 1: " ~ $cup-ring.join("");
+    my $one = $current.find(1);
+
+    say "Part 1: " ~ $one.join("");
 }
