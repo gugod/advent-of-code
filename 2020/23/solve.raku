@@ -1,5 +1,6 @@
 sub MAIN {
     part1;
+
     # part2;
 }
 
@@ -61,14 +62,7 @@ class CupRing {
     }
 }
 
-sub part2 {}
-
-sub part1 {
-    # my $input = "368195742";
-    my $input = "389125467";
-
-    my @cups = $input.comb>>.Int;
-
+sub play-crap-cups(@cups, $rounds = 100) {
     my $cup-ring = CupRing.from_array(@cups);
 
     my $MAX = @cups.max;
@@ -78,7 +72,7 @@ sub part1 {
 
     my $current = $cup-ring;
     my $round = 0;
-    while $round++ < 100 {
+    while $round++ < $rounds {
         my $cups_gist = $current.gist;
         my $picked = $current.follower;
         $current.follower = $current.follower.follower.follower.follower;
@@ -104,8 +98,16 @@ sub part1 {
 
         $current = $current.follower;
     }
+    return $current.find(1);
+}
 
-    my $one = $current.find(1);
+sub part2 {
+    my @cups = (|("389125467".comb>>.Int), |(10..10⁶));
+}
 
-    say "Part 1: " ~ $one.join("");
+sub part1 {
+    my $input = "389125467";
+    my @cups = $input.comb>>.Int;
+    my $final = play-crap-cups(@cups, 100);
+    say "Part 1: " ~ $final.join("");
 }
