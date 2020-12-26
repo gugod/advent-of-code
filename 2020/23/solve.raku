@@ -1,113 +1,83 @@
 sub MAIN {
     part1;
-
-    # part2;
+    part2;
 }
 
-class CupRing {
-    has Int $.cup;
-    has $.follower is rw;
+sub cups-join (Int $from, @next-cup, $limit = 15) {
+    my $cur = $from;
+    my $out = "$cur";
+    $cur = @next-cup[$cur];
 
-    method from_array (::?CLASS:U $class: @cups) {
-        my $x = $class.new( :cup(@cups[*-1]) );
-        my $tail = $x;
-        for @cups[ (@cups.end-1)...0 ] -> $cup {
-            $x = $class.new( :cup($cup), :follower($x) );
-        }
-        $tail.follower = $x;
-        return $x;
+    my $round = 0;
+    until $cur == $from or $round++ >= $limit {
+        $out ~= " $cur";
+        $cur = @next-cup[$cur];
     }
-
-    method find (Int $cup) {
-        my $i = 0;
-
-        if self.cup == $cup {
-            return self;
-        }
-
-        my $found;
-        my $cur = self.follower;
-        until $cur eqv self {
-            if $cur.cup == $cup {
-                $found = $cur;
-                last;
-            }
-            $cur = $cur.follower;
-        }
-
-        return $found;
-    }
-
-    method gist {
-        my $head = self.follower;
-        my $gist = "" ~ self.cup;
-        my $elems = 1;
-        until !$head or $head eqv self or $elems++ > 25 {
-            $gist ~= " " ~ $head.cup;
-            $head = $head.follower;
-        }
-        my $end = $head.defined ?? ( (not $head eqv self) ?? " ..." !! " :|" ) !! " ||";
-        return "[" ~ $gist ~ $end ~ "]";
-    }
-
-    method join (Str $delimiter) {
-        my $out = "" ~ self.cup;
-        my $head = self.follower;
-        my $elems = 1;
-        until !$head or $head eqv self {
-            $out ~= $delimiter ~ $head.cup;
-            $head = $head.follower;
-        }
-        return $out;
-    }
+    return $out;
 }
 
 sub play-crap-cups(@cups, $rounds = 100) {
-    my $cup-ring = CupRing.from_array(@cups);
-
     my $MAX = @cups.max;
     my $MIN = @cups.min;
 
-    say "Begin: {$cup-ring.gist} ($MIN ... $MAX )";
+    my @next-cup = [0];
+    @cups.rotor(2 => -1).map(
+        -> $it {
+            @next-cup[ $it[0] ] = $it[1];
+        });
+    @next-cup[@cups.tail] = @cups.head;
 
-    my $current = $cup-ring;
+    my $cur = 3;
+
     my $round = 0;
+    say "Round: $round, cups: { cups-join($cur, @next-cup) }";
+
     while $round++ < $rounds {
-        my $cups_gist = $current.gist;
-        my $picked = $current.follower;
-        $current.follower = $current.follower.follower.follower.follower;
-        $picked.follower.follower.follower = $picked;
+        my @picked = [
+            @next-cup[$cur],
+            @next-cup[@next-cup[$cur]],
+            @next-cup[@next-cup[@next-cup[$cur]]],
+        ];
 
-        my $picked_gist = $picked.gist;
-
-        my $destination_value = $current.cup - 1;
-        while $destination_value < $MIN or $current.cup == $destination_value or $picked.find($destination_value) {
-            $destination_value--;
-            $destination_value = $MAX if $destination_value < $MIN;
-        }
-        my $destination = $current.find($destination_value);
-
-        unless $destination {
-            die "WHY no destination $destination_value";
+        my $dest = $cur - 1;
+        while $dest < $MIN or $dest == any(|@picked, $cur) {
+            $dest--;
+            if $dest < $MIN {
+                $dest = $MAX;
+            }
         }
 
-        $picked.follower.follower.follower = $destination.follower;
-        $destination.follower = $picked;
+        # say "Round: $round, cur: $cur,  dest: $dest, picked: { @picked.gist }, cups: { cups-join($cur, @next-cup) }" if $round %% 10000;
 
-        say "Round: $round, Current: { $current.cup }, Picked: { $picked_gist }, Destination: { $destination.cup },\n    Cups: { $cups_gist }";
-
-        $current = $current.follower;
+        @next-cup[
+            $cur,
+            $dest,
+            @picked[2],
+        ] = [
+            @next-cup[@picked[2]],
+            @picked[0],
+            @next-cup[$dest],
+        ];
+        $cur = @next-cup[$cur];
     }
-    return $current.find(1);
+    return @next-cup;
 }
 
+# example: 389125467
+# puzzle: 368195742
 sub part2 {
-    my @cups = (|("389125467".comb>>.Int), |(10..10⁶));
+    my @cups = (|("389125467".comb.map(*.Int)), |(10..10⁶));
+    my @next = play-crap-cups(@cups, 10 * 10⁶);
+    my $c1 = @next[1];
+    my $c2 = @next[$c1];
+    say "Part 2: " ~ ($c1 * $c2);
 }
 
 sub part1 {
-    my $input = "389125467";
-    my @cups = $input.comb>>.Int;
-    my $final = play-crap-cups(@cups, 100);
-    say "Part 1: " ~ $final.join("");
+    # my $input = "389125467";
+    my $input = "368195742";
+    my @cups = $input.comb.map(*.Int);
+    my @next = play-crap-cups(@cups, 100);
+
+    say "Part 1: " ~ cups-join( 1, @next ).substr(1);
 }
