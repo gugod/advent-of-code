@@ -47,7 +47,7 @@ sub play-crap-cups(@cups, $rounds = 100) {
             }
         }
 
-        # say "Round: $round, cur: $cur,  dest: $dest, picked: { @picked.gist }, cups: { cups-join($cur, @next-cup) }" if $round %% 10000;
+        say "Round: $round, cur: $cur,  dest: $dest, picked: { @picked.gist }, cups: { cups-join($cur, @next-cup) }" if $round %% 10000;
 
         @next-cup[
             $cur,
@@ -66,7 +66,12 @@ sub play-crap-cups(@cups, $rounds = 100) {
 # example: 389125467
 # puzzle: 368195742
 sub part2 {
-    my @cups = (|("389125467".comb.map(*.Int)), |(10..10⁶));
+    ## puzzle
+    my @cups = (|("368195742".comb.map(*.Int)), |(10..10⁶));
+
+    ## example
+    # my @cups = (|("389125467".comb.map(*.Int)), |(10..10⁶));
+
     my @next = play-crap-cups(@cups, 10 * 10⁶);
     my $c1 = @next[1];
     my $c2 = @next[$c1];
