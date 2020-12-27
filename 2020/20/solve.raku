@@ -1,6 +1,6 @@
-sub MAIN {
-    my %tiles = part1;
-    part2(%tiles);
+ sub MAIN {
+    my %stash = part1();
+    part2(%stash);
 }
 
 sub part1 {
@@ -17,12 +17,17 @@ sub part1 {
             %borders<left>   = @lines.map({ .substr(0, 1) }).reverse.join("");
             %borders<right>  = @lines.map({ .substr(*-1, 1) }).join("");
 
+
+
             $tile_id => {
                 "id" => $tile_id,
                 "lines" => @lines,
-                "rotate" => 0,
                 "borders" => %borders,
                 "neighbours" => SetHash.new(),
+
+                "any-borders" => %borders.values.flatmap(-> $b { ( $b, $b.flip ) }).any(),
+                # Used in seam-all-borders
+                "locked" => False,
             }
         }
     );
@@ -52,8 +57,7 @@ sub part1 {
 
             my $this_border = $tile<borders>{$side};
             my $that_border = @all-borders
-                .grep({ .<tile_id> ne $tile<id> })
-                .first({ .<border> eq any($this_border, $this_border.flip) });
+                .first({ .<tile_id> ne $tile<id> and .<border> eq any($this_border, $this_border.flip) });
 
             if ($that_border) {
                 my $that_tile = %tiles{ $that_border<tile_id> };
@@ -69,9 +73,14 @@ sub part1 {
             $tile<neighbours>.elems == 2
         });
 
+    say "... corners: " ~ @corners.map({ .<id> }).join(", ");
+
     say "Part 1: " ~ [*] @corners.map({ .<id> });
 
-    return %tiles;
+    return (
+        "tiles" => %tiles,
+        "all-borders" => @all-borders,
+    );
 }
 
 sub paste-tile (@canvas, $tile, $y, $x) {
@@ -86,30 +95,74 @@ sub preview (@canvas) {
     .say for @canvas;
 }
 
-sub part2 (%tiles) {
-    # We assumed the number of tiles is a square numeber.
-    my $width = %tiles.values.elems.sqrt;
+sub rotate180($tile) {
+    say "Rotate 180: " ~ $tile<id>;
+}
 
-    # The canvas we ar painting. An array of String
+sub seam-all-tiles(%stash) {
+    my %tiles = %stash<tiles>;
+    my @all-borders = %stash<all-borders>;
+
+    my %other-side := {
+        :top("bottom"),
+        :bottom("top"),
+        :left("right"),
+        :right("left"),
+    };
+
     my @canvas;
 
-    # Seam all tiles starting from top-left corner as reference tile,
-    # flip others, never this one.
-    my $cursor-tile = %tiles.values.first(-> $t { $t<neighbours><left top>.none });
-    say $cursor-tile<id>;
-    my $cursor-y = 0;
-    my $cursor-x = 0;
-    paste-tile(@canvas, $cursor-tile, $cursor-y, $cursor-x);
-    $cursor-x += $cursor-tile<lines>[0].chars - 1;
+    # We assumed the number of tiles is a square numeber.
+    my $width = %tiles.elems.sqrt;
 
-    preview(@canvas);
+    my %locked;
 
-    # Seam the rest of tiles from top to down (row by row), from left to right.
+    # id => { top: id, left: ... }
+    my %neighbours;
+    my @todo;
 
-    while $cursor-tile = $cursor-tile<neighbours><right> {
-        say $cursor-tile<id>;
-        paste-tile(@canvas, $cursor-tile, $cursor-y, $cursor-x);
-        $cursor-x += $cursor-tile<lines>[0].chars - 1;
-        # preview(@canvas);
+    my sub self-orient ($tile) {
+        for $tile<borders>.kv -> $side, $border {
+            my $neighbour-tile-id = $tile<neighbours>.keys.first(
+                -> $id {
+                    %tiles{$id}<any-borders> eq $border
+                }
+            );
+            if $neighbour-tile-id.defined {
+                %neighbours{$tile<id>}{$side} = $neighbour-tile-id;
+                @todo.push($neighbour-tile-id);
+            }
+        }
     }
+
+    # Pick a random tile as the reference, adjuest all other tiles according to the orientation of this one.
+    my $tile = %tiles.pick.value;
+
+    self-orient($tile);
+    %locked{ $tile<id> } = True;
+
+    while @todo.elems > 0 {
+        my $id = @todo.shift;
+        next if %locked{$id};
+
+        self-orient( %tiles{$id} );
+
+        %locked{ $id } = True;
+    }
+
+    say "... corners: " ~ %neighbours.pairs.grep({ .value.elems == 2 }).map({ .key }).join(", ");
+
+    return @canvas;
+}
+
+sub part2 (%stash) {
+    my %tiles = %stash<tiles>;
+    my @all-borders = %stash<all-borders>;
+    # say %tiles;
+    # say @all-borders;
+
+    # The canvas we ar painting. An array of String
+    my @canvas = seam-all-tiles(%stash);
+
+    # preview(@canvas);
 }
