@@ -25,15 +25,14 @@ fn main() {
     let mut aim = 0;
     for line in input.lines() {
         let x = Instruction::from_str(line).unwrap();
-        if x.command == "forward" {
-            hpos += x.offset;
-            dpos += aim * x.offset;
-        }
-        else if x.command == "up" {
-            aim -= x.offset;
-        }
-        else if x.command == "down" {
-            aim += x.offset;
+        match x.command.as_str() {
+            "forward" => {
+                hpos += x.offset;
+                dpos += aim * x.offset;
+            },
+            "up" => aim -= x.offset,
+            "down" => aim += x.offset,
+            _ => ()
         }
     }
     println!("{}", hpos * dpos);

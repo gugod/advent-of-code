@@ -24,14 +24,11 @@ fn main() {
     let mut dpos = 0;
     for line in input.lines() {
         let x = Instruction::from_str(line).unwrap();
-        if x.command == "forward" {
-            hpos += x.offset;
-        }
-        else if x.command == "up" {
-            dpos -= x.offset;
-        }
-        else if x.command == "down" {
-            dpos += x.offset;
+        match x.command.as_str() {
+            "forward" => hpos += x.offset,
+            "up" => dpos -= x.offset,
+            "down" => dpos += x.offset,
+            _ => (),
         }
     }
     println!("{}", hpos * dpos);
