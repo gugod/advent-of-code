@@ -32,7 +32,7 @@ fn main() {
             },
             "up" => aim -= x.offset,
             "down" => aim += x.offset,
-            _ => ()
+            _ => unreachable!()
         }
     }
     println!("{}", hpos * dpos);

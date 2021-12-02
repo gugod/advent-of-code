@@ -28,7 +28,7 @@ fn main() {
             "forward" => hpos += x.offset,
             "up" => dpos -= x.offset,
             "down" => dpos += x.offset,
-            _ => (),
+            _ => unreachable!(),
         }
     }
     println!("{}", hpos * dpos);
