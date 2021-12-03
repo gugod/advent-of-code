@@ -1,6 +1,6 @@
 
 sub MAIN ( IO::Path() $input ) {
-    my Array @readings = $input.lines.map({ .comb.map(*.Int).Array });
+    my @readings = $input.lines.Array;
     say oxygen_rating(@readings) * co2_rating(@readings);
 }
 
@@ -13,15 +13,15 @@ sub co2_rating (@readings is copy) {
 }
 
 sub __compute_rating(@readings is copy, Bool $bitflip) {
-    my @indices = @readings[0].keys;
+    my %flip = $bitflip
+                ?? ( "1" => "0", "0" => "1" )
+                !! ( "0" => "0", "1" => "1" );
 
-    for @indices -> $i {
+    for 0..^(@readings[0].chars) -> $i {
         last if @readings.elems == 1;
-        my $popcount = @readings.map({ .[$i] }).sum();
-        my $bit = 2 * $popcount >= @readings.elems ?? 1 !! 0;
-        $bit = 1 - $bit if $bitflip;
-        @readings = @readings.grep({ .[$i] == $bit });
+        my %groups = @readings.classify({ .substr($i, 1) });
+        my $bit = %groups{"1"}.elems >= %groups{"0"}.elems ?? %flip{"1"} !! %flip{"0"};
+        @readings = %groups{$bit}.Array;
     }
-
     return @readings[0].join("").parse-base(2);
 }
