@@ -71,13 +71,17 @@ class Segment {
     }
 }
 
+class Wire {
+    has @.segments;
+}
+
 sub play-wires(@wires is copy) {
-    @wires = @wires.map({ wire-rel2abs($_) });
+    @wires = @wires.map({ Wire.new( segments => wire-rel2abs($_) ) });
 
     my @intersect-points;
-    for @wires[0].kv -> $i, $si {
-        for @wires[1].kv -> $j, $sj {
-            # Skip the very beginning segments -- they overlap at (0,0)
+    for @wires[0].segments.kv -> $i, $si {
+        for @wires[1].segments.kv -> $j, $sj {
+            # Skip the pair of the beginning segments -- they overlap at (0,0)
             next if $i == 0 && $j == 0;
 
             my $p = intersect-point($si, $sj);
@@ -91,7 +95,7 @@ sub play-wires(@wires is copy) {
         -> $p {
             my $steps = 0;
             for @wires -> $wire {
-                for $wire.values -> $s {
+                for $wire.segments -> $s {
                     if $s.contains($p) {
                         $steps += $s.steps-to($p);
                         last;
