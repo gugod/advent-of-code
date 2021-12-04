@@ -69,7 +69,7 @@ class BingoBoard {
 
 sub play-squid-game (@nums, @boards) {
     my @bingoboards = @boards.map({ BingoBoard.new( :board($_) ) });
-    my $last-winner;
+    my @last-winners;
 
     for @nums[0..3] -> $n {
         @bingoboards.map({ .mark($n) });
@@ -77,23 +77,17 @@ sub play-squid-game (@nums, @boards) {
 
     for @nums[4..*] -> $n {
         @bingoboards.map({ .mark($n) });
-
-        my @winners = @bingoboards.grep({ .bingo }, :kv);
-        if @winners.elems > 0 {
-            for @winners -> $i, $winner {
-                @bingoboards[$i] = Nil;
-                $last-winner = $winner;
-            }
-            @bingoboards = @bingoboards.grep({ .defined });
-            if @bingoboards.elems == 0 {
-                last;
-            }
+        my %x = @bingoboards.categorize({ .bingo });
+        if %x{True} {
+            @last-winners = %x{True}.values;
+            last unless %x{False};
+            @bingoboards = %x{False}.values;
         }
     }
 
-    if $last-winner {
-        say $last-winner.score;
+    if @last-winners.elems > 0 {
+        @last-winners.map({ .score.say });
     } else {
-        die "No winner";
+        die "No winners";
     }
 }
