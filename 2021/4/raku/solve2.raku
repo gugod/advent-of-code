@@ -46,9 +46,9 @@ class BingoBoard {
 
     method bingo (--> Bool) {
         return (
-            ($.last-marked-i.defined && $.marked[$.last-marked-i].all().Bool) ||
-            ($.last-marked-j.defined && $.marked[ 0..4; $.last-marked-j].all().Bool)
-        );
+            ($.last-marked-i.defined && $.marked[$.last-marked-i].all()) ||
+            ($.last-marked-j.defined && $.marked[ 0..4; $.last-marked-j].all())
+        ).Bool;
     }
 
     method score (--> Int) {
