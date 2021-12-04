@@ -73,7 +73,12 @@ class BingoBoard {
 sub play-squid-game (@nums, @boards) {
     my @bingoboards = @boards.map({ BingoBoard.new( :board($_) ) });
     my $last-winner;
-    for @nums -> $n {
+
+    for @nums[0..3] -> $n {
+        @bingoboards.map({ .mark($n) });
+    }
+
+    for @nums[4..*] -> $n {
         if @bingoboards.elems == 0 {
             last;
         }
