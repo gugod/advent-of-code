@@ -29,29 +29,26 @@ class BingoBoard {
     has $.board;
     has $.marked = [[ False xx 5 ] xx 5 ];
     has Int $.last-marked is rw;
+    has Int $.last-marked-i is rw;
+    has Int $.last-marked-j is rw;
 
     method mark ($num) {
         $.last-marked = $num;
         for (^5) X (^5) -> ($i, $j) {
             if $.board[$i][$j] == $num {
                 $.marked[$i][$j] = True;
+                $.last-marked-i = $i;
+                $.last-marked-j = $j;
                 last;
             }
         }
     }
 
     method bingo (--> Bool) {
-        for ^5 -> $i {
-            if $.marked[$i].all() {
-                return True;
-            }
-        }
-        for ^5 -> $i {
-            if $.marked[ 0..4; $i].all() {
-                return True;
-            }
-        }
-        return False;
+        return (
+            ($.last-marked-i.defined && $.marked[$.last-marked-i].all().Bool) ||
+            ($.last-marked-j.defined && $.marked[ 0..4; $.last-marked-j].all().Bool)
+        );
     }
 
     method score (--> Int) {
@@ -79,23 +76,18 @@ sub play-squid-game (@nums, @boards) {
     }
 
     for @nums[4..*] -> $n {
-        if @bingoboards.elems == 0 {
-            last;
-        }
-
         @bingoboards.map({ .mark($n) });
 
         my @winners = @bingoboards.grep({ .bingo }, :kv);
-        if @winners.elems == 0 {
-            say $n ~ "\t" ~ "(no winner)";
-        } else {
+        if @winners.elems > 0 {
             for @winners -> $i, $winner {
                 @bingoboards[$i] = Nil;
-
                 $last-winner = $winner;
-                say $n ~ "\t" ~ $winner.score;
             }
-            @bingoboards = @bingoboards.grep({ .defined })
+            @bingoboards = @bingoboards.grep({ .defined });
+            if @bingoboards.elems == 0 {
+                last;
+            }
         }
     }
 
