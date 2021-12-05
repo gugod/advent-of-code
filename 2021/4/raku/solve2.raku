@@ -2,25 +2,8 @@
 
 sub MAIN(IO::Path() $input) {
     my @lines = $input.lines;
-    my @nums = @lines.shift.split(",").map(*.Int);
-    @lines.shift;
-
-    my @boards;
-    my @board = [];
-    for @lines -> $line {
-        if $line eq "" {
-            @boards.push: @board.clone();
-            @board = [];
-        } else {
-            my @row = $line.comb(/\d+/).map(*.Int).Array;
-            unless @row.elems == 5 {
-                die "WUT? [$line] " ~ @row.gist;
-            }
-            @board.push: @row;
-        }
-    }
-    @boards.push: @board.clone();
-
+    my @nums = @lines.first.comb(/\d+/).map(*.Int);
+    my @boards = @lines.skip.comb(/\d+/).map(*.Int).rotor(25).map({ .rotor(5) }).Array;
     play-squid-game(@nums, @boards);
 }
 
