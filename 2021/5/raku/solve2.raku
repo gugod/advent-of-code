@@ -4,21 +4,12 @@ sub MAIN(IO::Path() $input) {
 
     my %space;
     for @lines -> $line {
-        # horizontal
-        if $line[0] == $line[2] {
-            ($line[1], $line[3]).minmax.map({ %space{ "$line[0],$_" }++ });
-        }
-        # vertical
-        if $line[1] == $line[3] {
-            ($line[0], $line[2]).minmax.map({ %space{ "$_,$line[1]" }++ });
-        }
-
-        # diagonal
         my @slope = [ $line[2] - $line[0], $line[3] - $line[1] ];
-        if @slope[0].abs == @slope[1].abs {
-            my @step = @slope.map({ $_ / .abs });
+        if @slope[0].abs == @slope[1].abs != 0 || 0 == @slope.any  {
+            my @step = @slope.map({ $_ == 0 ?? 0 !! $_ / $_.abs });
+            my $nsteps = @slope.first({ $_ != 0 }).abs;
             my @p = $line[0,1];
-            for 0..@slope[0].abs {
+            for 0..$nsteps {
                 %space{"@p[0],@p[1]"}++;
                 @p = @p «+» @step;
             }
