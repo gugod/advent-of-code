@@ -34,13 +34,11 @@ class BingoBoard {
 
     method mark ($num) {
         $.last-marked = $num;
-        for (^5) X (^5) -> ($i, $j) {
-            if $.board[$i][$j] == $num {
-                $.marked[$i][$j] = True;
-                $.last-marked-i = $i;
-                $.last-marked-j = $j;
-                last;
-            }
+        my ($i,$j) = (^5 X ^5).first({ $.board[.[0]][.[1]] == $num });
+        if ($i & $j).defined {
+            $.marked[$i][$j] = True;
+            $.last-marked-i = $i;
+            $.last-marked-j = $j;
         }
     }
 
