@@ -10,7 +10,7 @@ sub part2() {
     my $count = 0;
     my $p = next_password(172851);
     while $p < 675869 {
-        if $p.comb(/1+|2+|3+|4+|5+|6+|7+|8+|9+|0+/).map(*.chars == 2).any {
+        if $p.comb(/(.)$0+/).map(*.chars == 2).any {
             $count++;
         }
         $p = next_password($p);
