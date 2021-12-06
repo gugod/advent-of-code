@@ -1,21 +1,26 @@
 
 sub MAIN(IO::Path() $input) {
-    my @nums = $input.lines.comb(/\d+/).Array;
-    # my @nums = (3,4,3,1,2);
+    # .Array is not needed, if you assign to an array variable a list will
+    # become an array automatically.
+    my @nums = $input.lines.comb(/\d+/);
 
-    ## Part 1
-    # play-latternfish(@nums, 80);
-
-    ## Part 2
     play-latternfish(@nums, 256);
 }
 
 sub play-latternfish (@nums, $days) {
     my @gen = 0 xx 9;
+    
+    # Personally, I don't like map in void context
     @nums.map({ @gen[$_]++ });
-    my $days_passed = 0;
-    while $days_passed++ < $days {
+
+    # You hardly ever need explicit loop counters
+    # and if you do, you won't have to increase them
+    # manually like an animal
+    for ^$days {
         @gen = (@gen[1..6], @gen[0,7].sum, @gen[8,0]).flat;
     }
-    say @gen.values.sum;
+    
+    # since we allready have an array, there is no need to call .values on it
+    # that's a no-op
+    say @gen.sum;
 }
