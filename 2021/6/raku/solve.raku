@@ -2,7 +2,11 @@
 sub MAIN(IO::Path() $input) {
     my @nums = $input.lines.comb(/\d+/).Array;
     # my @nums = (3,4,3,1,2);
+
+    ## Part 1
     # play-latternfish(@nums, 80);
+
+    ## Part 2
     play-latternfish(@nums, 256);
 }
 
