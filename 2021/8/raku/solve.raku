@@ -5,59 +5,57 @@ sub MAIN(IO::Path() $input) {
 }
 
 sub part2(@lines) {
-    my $sum = 0;
-    for @lines -> $line {
-        my @x = $line.split("|").map(*.words);
-        my @in = @x[0].Array;
-        my @out = @x[1].Array;
+    @lines.map(
+        -> $line {
+            my @it = $line.split("|")».words.values;
+            my @in = @it[0].values;
+            my @out = @it[1].values;
 
-        my @clue = (@in, @out).flat.map({ .comb.sort.join }).unique;
+            my @clues = (@in, @out).flat.map({ .comb.sort.join }).unique;
 
-        my %num2clue;
-        my %clue2num;
-        %clue2num{ @clue.first(*.chars == 2) } = 1;
-        %clue2num{ @clue.first(*.chars == 4) } = 4;
-        %clue2num{ @clue.first(*.chars == 3) } = 7;
-        %clue2num{ @clue.first(*.chars == 7) } = 8;
-        %num2clue = %clue2num.pairs.map({ .value => .key.comb.Set });
+            my %digit = (
+                @clues.first(*.chars == 2) => 1,
+                @clues.first(*.chars == 4) => 4,
+                @clues.first(*.chars == 3) => 7,
+                @clues.first(*.chars == 7) => 8,
+            );
+            my %clue-of-num = %digit.pairs.map({ .value => .key.comb.Set });
 
-        for @clue -> $clue {
-            next if %clue2num{$clue}:exists;
+            for @clues -> $clue {
+                next if %digit{$clue}:exists;
 
-            my $c = $clue.comb.Set;
-            given $clue.chars {
-                when 5 {
-                    if ($c (>) %num2clue{1}) {
-                        %clue2num{$clue} = 3
-                    } else {
-                        given ($c (&) %num2clue{4}).elems {
-                            when 2 {
-                                %clue2num{$clue} = 2;
-                            }
-                            when 3 {
-                                %clue2num{$clue} = 5;
+                my $c = $clue.comb.Set;
+                given $clue.chars {
+                    when 5 {
+                        if ($c ⊃ %clue-of-num{1}) {
+                            %digit{$clue} = 3
+                        } else {
+                            given ($c ∩ %clue-of-num{4}).elems {
+                                when 2 {
+                                    %digit{$clue} = 2;
+                                }
+                                when 3 {
+                                    %digit{$clue} = 5;
+                                }
                             }
                         }
                     }
-                }
-                when 6 {
-                    if ($c (>) %num2clue{7}) {
-                        if ($c (>) %num2clue{4}) {
-                            %clue2num{$clue} = 9;
+                    when 6 {
+                        if ($c ⊃ %clue-of-num{7}) {
+                            if ($c ⊃ %clue-of-num{4}) {
+                                %digit{$clue} = 9;
+                            } else {
+                                %digit{$clue} = 0;
+                            }
                         } else {
-                            %clue2num{$clue} = 0;
+                            %digit{$clue} = 6
                         }
-                    } else {
-                        %clue2num{$clue} = 6
                     }
                 }
             }
-        }
 
-        $sum += @out.map({ %clue2num{ .comb.sort.join } // die $_ }).join.Int;
-    }
-
-    say $sum;
+            @out.map({ %digit{ .comb.sort.join } // die $_ }).join.Int;
+        }).sum.say;
 }
 
 sub part1(@lines) {
