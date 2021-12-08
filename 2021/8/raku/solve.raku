@@ -5,14 +5,8 @@ sub MAIN(IO::Path() $input) {
 }
 
 sub part2(@lines) {
-    @lines.map(
-        -> $line {
-            my @it = $line.split("|")».words.values;
-            my @in = @it[0].values;
-            my @out = @it[1].values;
-
+    @lines.map( *.split("|")».words ).map(-> (@in, @out) {
             my @clues = (@in, @out).flat.map({ .comb.sort.join }).unique;
-
             my %digit = (
                 @clues.first(*.chars == 2) => 1,
                 @clues.first(*.chars == 4) => 4,
