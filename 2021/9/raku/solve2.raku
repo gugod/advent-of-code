@@ -10,23 +10,24 @@ sub MAIN(IO::Path() $input) {
         @p[0] * $width + @p[1]
     }
 
-    my sub neighbours($y, $x) {
+    my sub neighbours(@p) {
         ((-1, 0), (0, -1), (0, 1), (1, 0))
-        .map({ $_ <<+>> ($y, $x) })
+        .map({ $_ <<+>> (@p[0], @p[1]) })
         .grep({ 0 <= .[0] < $height && 0 <= .[1] < $width })
         .Array;
     }
 
     my @low-points = gather {
         for (^$height X ^$width) -> ($y, $x) {
-            my $cur = cur [$y,$x];
-            my @neighbours = neighbours($y, $x).map(&cur);
+            my $p = [$y,$x];
+            my $cur = cur($p);
+            my @neighbours = neighbours($p).map(&cur);
 
             my $hcur = @terrian[$cur];
             my @hneighbours = @terrian[ @neighbours ];
 
             if $hcur < @hneighbours.all {
-                take [$y, $x];
+                take $p;
             }
         }
     }
@@ -39,10 +40,10 @@ sub MAIN(IO::Path() $input) {
         @checked[ cur($p) ] = True;
 
         while @s.elems > 0 {
-            my ($y,$x) = @s.pop;
+            my $p = @s.pop;
             $basin++;
 
-            neighbours($y, $x).map: -> $p {
+            neighbours($p).map: -> $p {
                 my $c = cur($p);
                 if !@checked[$c] && @terrian[$c] < 9 {
                     @checked[$c] = True;
