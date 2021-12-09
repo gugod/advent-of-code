@@ -35,15 +35,13 @@ sub MAIN(IO::Path() $input) {
     my @basin-sizes;
     my @checked;
     for @low-points -> $p {
-        my $basin;
+        my $basin-size;
         my @s = [ $p ];
         @checked[ cur($p) ] = True;
 
         while @s.elems > 0 {
-            my $p = @s.pop;
-            $basin++;
-
-            neighbours($p).map: -> $p {
+            $basin-size += 1;
+            neighbours(@s.pop).map: -> $p {
                 my $c = cur($p);
                 if !@checked[$c] && @terrian[$c] < 9 {
                     @checked[$c] = True;
@@ -52,8 +50,8 @@ sub MAIN(IO::Path() $input) {
             }
         }
 
-        @basin-sizes.push($basin);
+        @basin-sizes.push: $basin-size;
     }
 
-    say [*] @basin-sizes.sort.reverse.[0,1,2];
+    @basin-sizes.sort.reverse.[0,1,2].reduce(&infix:<*>).say;
 }
