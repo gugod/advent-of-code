@@ -53,5 +53,5 @@ sub MAIN(IO::Path() $input) {
         @basin-sizes.push: $basin-size;
     }
 
-    @basin-sizes.sort.reverse.[0,1,2].reduce(&infix:<*>).say;
+    say [*] @basin-sizes.sort.reverse.[^3];
 }
