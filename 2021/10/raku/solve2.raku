@@ -1,15 +1,28 @@
 
 sub MAIN(IO::Path() $input) {
-    # Part 1: total corruption.
-    say [+] $input.lines.map(&corruption-score);
+    # Part 2: mediocre completion.
+    my @scores;
+    for $input.lines -> $line {
+        my ($score, $completer) = corruption($line);
+        next if $score > 0;
+        @scores.push: completion-score($completer);
+    }
+    say @scores.sort.[ @scores.elems / 2 ];
 }
 
-sub corruption-score (Str $noise) {
-    my @chars = $noise.comb;
+sub completion-score($s) {
+    state %score = ( ')' => 1, ']' => 2, '}' => 3, '>' => 4 );
+    my $score = 0;
+    for $s.comb -> $c {
+        $score = ($score * 5) + %score{$c};
+    }
+    return $score;
+}
 
+sub corruption (Str $noise) {
     my $score = 0;
     my @st;
-    for @chars -> $c {
+    for $noise.comb -> $c {
         if is-open($c) {
             @st.push($c);
         }
@@ -23,8 +36,7 @@ sub corruption-score (Str $noise) {
             }
         }
     }
-
-    return $score;
+    return ($score, @st.map({ closer($_) }).reverse.join);
 }
 
 sub score($c) {
