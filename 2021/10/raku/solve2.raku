@@ -11,7 +11,7 @@ sub MAIN(IO::Path() $input) {
 }
 
 sub completion-score($s) {
-    state %score = ( ')' => 1, ']' => 2, '}' => 3, '>' => 4 );
+    constant %score = ( ')' => 1, ']' => 2, '}' => 3, '>' => 4 );
     my $score = 0;
     for $s.comb -> $c {
         $score = ($score * 5) + %score{$c};
@@ -20,8 +20,8 @@ sub completion-score($s) {
 }
 
 sub corruption (Str $noise) {
-    state %score = ( ')' => 3, ']' => 57, '}' => 1197, '>' => 25137 );
-    state %closer-of = '()[]{}<>'.comb.pairup;
+    constant %score = ( ')' => 3, ']' => 57, '}' => 1197, '>' => 25137 );
+    constant %closer-of = '()[]{}<>'.comb.pairup;
 
     my @stack;
     my $score = 0;
