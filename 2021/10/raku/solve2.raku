@@ -20,40 +20,22 @@ sub completion-score($s) {
 }
 
 sub corruption (Str $noise) {
+    state %score = ( ')' => 3, ']' => 57, '}' => 1197, '>' => 25137 );
+    state %closer-of = '()[]{}<>'.comb.pairup;
+
+    my @stack;
     my $score = 0;
-    my @st;
-    for $noise.comb -> $c {
-        if is-open($c) {
-            @st.push($c);
-        }
-        else {
-            my $o = @st.pop;
-            my $want = closer($o);
-            if $c ne $want {
-                # say "corrupted: expected $want, got $c";
-                $score += score($c);
-                last;
+
+    $noise.comb.first: -> $c {
+        if %closer-of{$c}:exists {
+            @stack.push($c);
+        } else {
+            if $c ne %closer-of{ @stack.pop } {
+                $score += %score{$c};
             }
         }
+        $score != 0;
     }
-    return ($score, @st.map({ closer($_) }).reverse.join);
-}
 
-sub score($c) {
-    state %score = ( ')' => 3, ']' => 57, '}' => 1197, '>' => 25137 );
-    return %score{$c};
-}
-
-sub closer($c) {
-    state %closer = ( '(' => ')', '[' => ']', '{' => '}', '<' => '>' );
-    return %closer{$c};
-}
-
-sub opener($c) {
-    state %opener = ( ')' => '(', ']' => '[', '}' => '{', '>' => '<' );
-    return %opener{$c};
-}
-
-sub is-open($c) {
-    $c eq '(' | '[' | '{' | '<'
+    return ($score, @stack.map({ %closer-of{$_} }).reverse.join);
 }
