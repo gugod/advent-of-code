@@ -33,22 +33,17 @@ sub one-step-for-octupus (Int $w is readonly, Int $h is readonly, @energy) {
     return %flashed.keys.elems;
 }
 
-sub neighbours (Int $i is readonly, Int $width is readonly, Int $height is readonly) {
-    my $size = $width * $height;
+sub neighbours (Int $i is readonly, Int $w is readonly, Int $h is readonly) {
     return gather {
-        unless $i %% $width {
-            take($i-1);
-            take($i-1-$width);
-            take($i-1+$width);
+        take slip ($w, -$w) >>+>> $i;
+
+        unless $i %% $w {
+            take slip ($w, 0, -$w) >>+>> ($i-1);
         }
-        unless ($i+1) %% $width {
-            take($i+1);
-            take($i+1-$width);
-            take($i+1+$width);
+        unless ($i+1) %% $w {
+            take slip ($w, 0, -$w) >>+>> ($i+1);
         }
-        take($i-$width);
-        take($i+$width);
-    }.grep(^$size);
+    }.grep(^($w * $h));
 }
 
 sub letssee ($title is readonly, $w is readonly, $h is readonly, @energy is readonly) {
