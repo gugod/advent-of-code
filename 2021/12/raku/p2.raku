@@ -6,6 +6,35 @@ sub MAIN(IO::Path() $input) {
         %connected{$b}{$a} = True unless $b eq "end" || $a eq "start";
     }
 
+    say all-paths-impl-recursion(%connected);
+    # say all-paths-impl-stack(%connected);
+}
+
+sub all-paths-impl-recursion (%connected) {
+    my $all-paths = 0;
+
+    my sub traverse( $duped, @path is copy, $current ) {
+        @path.append($current);
+
+        for %connected{$current}.keys -> $next {
+            if $next eq "end" {
+                $all-paths += 1;
+                # say $path.join(",");
+                next;
+            }
+
+            my $is-lc-and-visited = $next.match(/^<[a..z]>/) && $next ∈ @path;
+            next if $is-lc-and-visited && $duped;
+            traverse($duped || $is-lc-and-visited, @path, $next);
+        }
+    }
+
+    traverse(False, Array[Str](), "start");
+
+    return $all-paths;
+}
+
+sub all-paths-impl-stack (%connected) {
     my $all-paths = 0;
 
     # my @stack = ([False, {}, "start"],);
@@ -22,7 +51,8 @@ sub MAIN(IO::Path() $input) {
                 my $duped = $path[1] ∋ $it;
                 next if $is-lc && $duped && $path[0];
 
-                my $next-path = $path.clone().append($it);
+                my $next-path = $path.clone();
+                $next-path[*-1] = $it;
                 if $is-lc {
                     if $duped {
                         $next-path[0] = True if !$path[0];
@@ -38,5 +68,5 @@ sub MAIN(IO::Path() $input) {
 
     # .join(",").say for @all-paths;
     # say @all-paths.elems;
-    say $all-paths;
+    return $all-paths;
 }
