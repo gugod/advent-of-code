@@ -8,7 +8,8 @@ sub MAIN(IO::Path() $input) {
 
     my $all-paths = 0;
 
-    my @stack = ([False, "start"],);
+    # my @stack = ([False, {}, "start"],);
+    my @stack = %connected<start>.keys.map({ [ False, %( $_ => True ), [$_] ] });
     while @stack.elems > 0 {
         my $path = @stack.pop();
 
@@ -19,12 +20,15 @@ sub MAIN(IO::Path() $input) {
                 # say $next-path.join(",");
                 $all-paths += 1;
             } else {
-                my $duped = is-all-lowercase($it) && $path.first($it).defined;
+                my $is-lc = is-all-lowercase($it);
+                my $duped = $is-lc && $path[1]{$it};
                 next if $duped && $path[0];
 
                 my $next-path = $path.clone();
                 $next-path.append($it);
-                $next-path[0] = True if $duped;
+                $next-path[0] = True if !$path[0] && $duped;
+                $next-path[1] = $path[1].clone();
+                $next-path[1]{$it} = True if $is-lc;
 
                 @stack.push($next-path);
             }
