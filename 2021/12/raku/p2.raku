@@ -9,26 +9,27 @@ sub MAIN(IO::Path() $input) {
     my $all-paths = 0;
 
     # my @stack = ([False, {}, "start"],);
-    my @stack = %connected<start>.keys.map({ [ False, %( $_ => True ), [$_] ] });
+    my @stack = %connected<start>.keys.map({ [ False, set($_), $_ ] });
     while @stack.elems > 0 {
         my $path = @stack.pop();
 
-        my @connection = %connected{ $path[*-1] }.keys;
-
-        for @connection -> $it {
+        for %connected{ $path[*-1] }.keys -> $it {
             if $it eq "end" {
                 # say $next-path.join(",");
                 $all-paths += 1;
             } else {
-                my $is-lc = is-all-lowercase($it);
-                my $duped = $is-lc && $path[1]{$it};
-                next if $duped && $path[0];
+                my $is-lc = $it.match(/^<[a..z]>/);
+                my $duped = $path[1] ∋ $it;
+                next if $is-lc && $duped && $path[0];
 
-                my $next-path = $path.clone();
-                $next-path.append($it);
-                $next-path[0] = True if !$path[0] && $duped;
-                $next-path[1] = $path[1].clone();
-                $next-path[1]{$it} = True if $is-lc;
+                my $next-path = $path.clone().append($it);
+                if $is-lc {
+                    if $duped {
+                        $next-path[0] = True if !$path[0];
+                    } else {
+                        $next-path[1] = $path[1] ∪ set($it);
+                    }
+                }
 
                 @stack.push($next-path);
             }
@@ -38,8 +39,4 @@ sub MAIN(IO::Path() $input) {
     # .join(",").say for @all-paths;
     # say @all-paths.elems;
     say $all-paths;
-}
-
-sub is-all-lowercase (Str $s) {
-    $s.match(/^<[a..z]>+$/)
 }
