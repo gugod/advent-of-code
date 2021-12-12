@@ -15,17 +15,17 @@ sub MAIN(IO::Path() $input) {
         my @connection = %connected{ $path[*-1] }.keys;
 
         for @connection -> $it {
-            if is-all-lowercase($it) && $path.first($it).defined {
-                next if no-more-lowercase-duper($path);
-            }
-
-            my $next-path = $path.clone();
-            $next-path.append($it);
-
             if $it eq "end" {
                 # say $next-path.join(",");
                 $all-paths += 1;
             } else {
+                if is-all-lowercase($it) && $path.first($it).defined {
+                    next if no-more-lowercase-duper($path);
+                }
+
+                my $next-path = $path.clone();
+                $next-path.append($it);
+
                 @stack.push($next-path);
             }
         }
