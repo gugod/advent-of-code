@@ -2,8 +2,8 @@
 sub MAIN(IO::Path() $input) {
     my %connected;
     for $input.lines>>.split("-") -> [$a, $b] {
-        %connected{$a}{$b} = True unless $a eq "end" || $b eq "start";
-        %connected{$b}{$a} = True unless $b eq "end" || $a eq "start";
+        %connected{$a}.push($b) unless $a eq "end" || $b eq "start";
+        %connected{$b}.push($a) unless $b eq "end" || $a eq "start";
     }
 
     say all-paths-impl-recursion(%connected);
@@ -17,16 +17,15 @@ sub all-paths-impl-recursion (%connected) {
         my $current := @path[*-1];
 
         my @params;
-        for %connected{$current}.keys -> $next {
+        for %connected{$current}.values -> $next {
             if $next eq "end" {
                 $all-paths += 1;
                 # say $path.join(",");
-                next;
+            } else {
+                my $is-lc-and-visited = $next.match(/^<[a..z]>/) && $next ∈ @path;
+                next if $is-lc-and-visited && $duped;
+                traverse($duped || $is-lc-and-visited, [|@path, $next]);
             }
-
-            my $is-lc-and-visited = $next.match(/^<[a..z]>/) && $next ∈ @path;
-            next if $is-lc-and-visited && $duped;
-            traverse($duped || $is-lc-and-visited, [|@path, $next]);
         }
     }
 
@@ -38,12 +37,12 @@ sub all-paths-impl-recursion (%connected) {
 sub all-paths-impl-stack (%connected) {
     my $all-paths = 0;
 
-    # my @stack = ([False, {}, "start"],);
-    my @stack = %connected<start>.keys.map({ [ False, set($_), $_ ] });
+    my @stack = ([False, set(), "start"],);
+    # my @stack = %connected<start>.map({ [ False, set($_), $_ ] });
     while @stack.elems > 0 {
         my $path = @stack.pop();
 
-        for %connected{ $path[*-1] }.keys -> $it {
+        for %connected{ $path[*-1] }.values -> $it {
             if $it eq "end" {
                 # say $next-path.join(",");
                 $all-paths += 1;
