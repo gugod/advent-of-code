@@ -8,7 +8,7 @@ sub MAIN(IO::Path() $input) {
 
     my $all-paths = 0;
 
-    my @stack = (["start"],);
+    my @stack = ([False, "start"],);
     while @stack.elems > 0 {
         my $path = @stack.pop();
 
@@ -19,12 +19,12 @@ sub MAIN(IO::Path() $input) {
                 # say $next-path.join(",");
                 $all-paths += 1;
             } else {
-                if is-all-lowercase($it) && $path.first($it).defined {
-                    next if no-more-lowercase-duper($path);
-                }
+                my $duped = is-all-lowercase($it) && $path.first($it).defined;
+                next if $duped && $path[0];
 
                 my $next-path = $path.clone();
                 $next-path.append($it);
+                $next-path[0] = True if $duped;
 
                 @stack.push($next-path);
             }
@@ -38,12 +38,4 @@ sub MAIN(IO::Path() $input) {
 
 sub is-all-lowercase (Str $s) {
     $s.match(/^<[a..z]>+$/)
-}
-
-sub no-more-lowercase-duper ($path) {
-    my %freq;
-    for $path.values.grep(&is-all-lowercase) -> $it {
-        return True if ++%freq{$it} == 2;
-    }
-    return False;
 }
