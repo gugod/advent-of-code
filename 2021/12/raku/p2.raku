@@ -13,9 +13,10 @@ sub MAIN(IO::Path() $input) {
 sub all-paths-impl-recursion (%connected) {
     my $all-paths = 0;
 
-    my sub traverse( $duped, @path is copy, $current ) {
-        @path.append($current);
+    my sub traverse( $duped, @path ) {
+        my $current := @path[*-1];
 
+        my @params;
         for %connected{$current}.keys -> $next {
             if $next eq "end" {
                 $all-paths += 1;
@@ -25,11 +26,11 @@ sub all-paths-impl-recursion (%connected) {
 
             my $is-lc-and-visited = $next.match(/^<[a..z]>/) && $next ∈ @path;
             next if $is-lc-and-visited && $duped;
-            traverse($duped || $is-lc-and-visited, @path, $next);
+            traverse($duped || $is-lc-and-visited, [|@path, $next]);
         }
     }
 
-    traverse(False, Array[Str](), "start");
+    traverse(False, ["start"]);
 
     return $all-paths;
 }
