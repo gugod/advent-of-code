@@ -16,20 +16,20 @@ sub MAIN(IO::Path() $input) {
     # vis(@dots);
     say "Begin with " ~ @dots.elems ~ " dots";
     for @foldings -> [$axis, $foldline] {
-        my %parts;
+        my ($classifier, $folder);
         given $axis {
             when "x" {
-                %parts = @dots.categorize: { .[0] < $foldline ?? "p1" !! "p2" }
-                %parts<p2>.=map({ [ fold-along($foldline, .[0]), .[1] ] });
+                $classifier = { .[0] < $foldline ?? "p1" !! "p2" };
+                $folder = { [ fold-along($foldline, .[0]), .[1] ] };
             }
             when "y" {
-                %parts = @dots.categorize: { .[1] < $foldline ?? "p1" !! "p2" }
-                %parts<p2>.=map({ [ .[0], fold-along($foldline, .[1]) ] });
+                $classifier = { .[1] < $foldline ?? "p1" !! "p2" };
+                $folder = { [ .[0], fold-along($foldline, .[1]) ] };
             }
         }
 
-        %parts<p1> //= [];
-        %parts<p2> //= [];
+        my %parts = ( :p1([]), :p2([]), |@dots.categorize($classifier) );
+        %parts<p2> .=map: $folder;
 
         @dots = (|%parts<p1>, |%parts<p2>).unique( :with(&[eqv]) );
 
