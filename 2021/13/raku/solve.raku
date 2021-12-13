@@ -20,23 +20,28 @@ sub MAIN(IO::Path() $input) {
         given $axis {
             when "x" {
                 %parts = @dots.categorize: { .[0] < $foldline ?? "p1" !! "p2" }
-                %parts<p2>.=map({ [ (2*$foldline - .[0] ), .[1] ] }).=Array;
+                %parts<p2>.=map({ [ fold-along($foldline, .[0]), .[1] ] });
             }
             when "y" {
                 %parts = @dots.categorize: { .[1] < $foldline ?? "p1" !! "p2" }
-                %parts<p2>.=map({ [ .[0], (2*$foldline - .[1])] }).=Array;
+                %parts<p2>.=map({ [ .[0], fold-along($foldline, .[1]) ] });
             }
         }
 
-        @dots = (%parts<p1>:!exists) ?? %parts<p2>.values
-                 !! (%parts<p2>:!exists) ??  %parts<p1>.values
-                 !! (%parts<p1> ∪ %parts<p2>.grep({ $_ eqv none(%parts<p1>)})).keys;
+        %parts<p1> //= [];
+        %parts<p2> //= [];
+
+        @dots = (|%parts<p1>, |%parts<p2>).unique( :with(&[eqv]) );
 
         # vis(@dots);
         say "fold $axis $foldline --> " ~ @dots.elems ~ " dots remain";
     }
 
     vis(@dots);
+}
+
+sub fold-along($ln, $m) {
+    2 * $ln - $m
 }
 
 sub vis(@dots) {
