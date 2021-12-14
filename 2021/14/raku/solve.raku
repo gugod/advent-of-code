@@ -1,7 +1,8 @@
 
 sub MAIN(IO::Path() $input) {
-    my @polymer = $input.lines[0].comb;
-    my %rules = $input.lines[2..*].flatmap({ .comb(/<[A..Z]>+/) }).pairup;
+    my @lines = $input.lines;
+    my @polymer = @lines[0].comb;
+    my %rules = @lines[2..*].flatmap({ .split(" -> ") }).pairup;
 
     my %freq;
     @polymer.rotor(2 => -1).map: {  %freq{ .join() }++ };
