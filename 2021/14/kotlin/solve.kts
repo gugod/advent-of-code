@@ -4,7 +4,7 @@ import java.io.File
 val lines = File(args[0]).readLines()
 val polymers = lines[0]
 
-val rules: Map<String,String> = lines.slice(2..lines.lastIndex).map { it.split(" -> ") }.associate { it[0] to it[1] }
+val rules = lines.slice(2..lines.lastIndex).map { it.split(" -> ") }.associate { it[0] to it[1] }
 
 var freq = hashMapOf<String,Long>()
 polymers.windowed(2).forEach {
