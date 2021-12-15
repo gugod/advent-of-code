@@ -3,7 +3,41 @@ sub MAIN(IO::Path() $input) {
     my @risk = expand $input.lines.map({ .comb.map({ .Int }).Array }).Array;
     # solve-with-naive(@risk);
 
-    solve-with-shortestpath(@risk);
+    solve-with-spfa(@risk);
+    # solve-with-dijkstra(@risk);
+}
+
+sub solve-with-spfa (@risk) {
+    my @dist = @risk.map({ (Inf xx $_.elems).Array }).Array;
+    @dist[0][0] = 0;
+
+    my $h = @risk.elems;
+    my $w = @risk[0].elems;
+
+    my @Q = [];
+    @Q.push([0,0]);
+
+    while @Q.elems > 0 {
+        my $u = @Q.shift;
+
+        my ($y, $x) = $u.[0,1];
+        my @neighbours = ([$y+1,$x], [$y,$x+1], [$y-1,$x], [$y,$x-1]).grep({ 0 <= .[0] < $h && 0 <= .[1] < $w });
+
+        for @neighbours -> $v {
+            my $w = @risk[$v[0]][$v[1]];
+
+            my $d = @dist[$u[0]][$u[1]] + $w;
+            if $d < @dist[$v[0]][$v[1]] {
+                @dist[$v[0]][$v[1]] = $d;
+
+                unless @Q.first({ $_ eqv $v }) {
+                    @Q.push($v);
+                }
+            }
+        }
+    }
+
+    say @dist[*-1][*-1];
 }
 
 sub solve-with-naive(@risk) {
@@ -41,7 +75,7 @@ sub solve-with-naive(@risk) {
     say @memo[*-1][*-1];
 }
 
-sub solve-with-shortestpath(@risk) {
+sub solve-with-dijkstra(@risk) {
     my $h = @risk.elems;
     my $w = @risk[0].elems;
 
