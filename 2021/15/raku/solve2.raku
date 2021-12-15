@@ -48,12 +48,17 @@ sub solve-with-shortestpath(IO::Path() $input) {
     my $h = @risk.elems;
     my $w = @risk[0].elems;
 
+
     my sub neighbours ($u) {
-        my ($y, $x) = $u.split(",");
-        ([1,0], [0,1], [-1,0], [0,-1])
-        .map({ $_ <<+>> ($y, $x) })
-        .grep({ 0 <= .[0] < $h && 0 <= .[1] < $w })
-        .map({ .join(",") });
+        state %memo;
+        unless %memo{$u}:exists {
+            my ($y, $x) = $u.split(",");
+            %memo{$u} = ([1,0], [0,1], [-1,0], [0,-1])
+                            .map({ $_ <<+>> ($y, $x) })
+                            .grep({ 0 <= .[0] < $h && 0 <= .[1] < $w })
+                            .map({ .join(",") }).Array;
+        }
+        return %memo{$u};
     }
 
     my %risk = (^$h X ^$w).map(-> ($y, $x) { "$y,$x" => @risk[$y][$x] });
@@ -65,12 +70,12 @@ sub solve-with-shortestpath(IO::Path() $input) {
 
     while @Q.elems > 0 {
         # Take smallest item.
-        my ($u) = @Q.splice( @Q.keys.min({ %risk{$_} }), 1 );
+        my ($u) = @Q.splice( @Q.keys.min({ %total-risk{$_} }), 1 );
 
         %done{$u} = True;
         last if $u eq $goal;
 
-        for neighbours($u) -> $v {
+        for neighbours($u).values -> $v {
             next if %done{$v};
 
             my $risk = (%total-risk{$u} + %risk{$v});
