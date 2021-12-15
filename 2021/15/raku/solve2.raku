@@ -1,13 +1,12 @@
 
 sub MAIN(IO::Path() $input) {
-    solve-with-naive($input);
+    my @risk = expand $input.lines.map({ .comb.map({ .Int }).Array }).Array;
+    # solve-with-naive(@risk);
 
-    ## XXX: incorrect
-    ## solve-with-shortestpath($input);
+    solve-with-shortestpath(@risk);
 }
 
-sub solve-with-naive(IO::Path() $input) {
-    my @risk = expand $input.lines.map({ .comb.map({ .Int }).Array }).Array;
+sub solve-with-naive(@risk) {
     my @memo = @risk.map({ (Inf xx $_.elems).Array }).Array;
     @memo[0][0] = 0;
 
@@ -42,19 +41,15 @@ sub solve-with-naive(IO::Path() $input) {
     say @memo[*-1][*-1];
 }
 
-sub solve-with-shortestpath(IO::Path() $input) {
-    my @risk = expand $input.lines.map({ .comb.map({ .Int }).Array }).Array;
-
+sub solve-with-shortestpath(@risk) {
     my $h = @risk.elems;
     my $w = @risk[0].elems;
-
 
     my sub neighbours ($u) {
         state %memo;
         unless %memo{$u}:exists {
             my ($y, $x) = $u.split(",");
-            %memo{$u} = ([1,0], [0,1], [-1,0], [0,-1])
-                            .map({ $_ <<+>> ($y, $x) })
+            %memo{$u} = ([$y+1,$x], [$y,$x+1], [$y-1,$x], [$y,$x-1])
                             .grep({ 0 <= .[0] < $h && 0 <= .[1] < $w })
                             .map({ .join(",") }).Array;
         }
@@ -64,13 +59,15 @@ sub solve-with-shortestpath(IO::Path() $input) {
     my %risk = (^$h X ^$w).map(-> ($y, $x) { "$y,$x" => @risk[$y][$x] });
 
     my $goal = ($h-1, $w-1).join(",");
-    my %total-risk = ( "0,0" => 0 );
+    my %dist = ( "0,0" => 0 );
     my @Q = ["0,0"];
     my %done;
 
     while @Q.elems > 0 {
         # Take smallest item.
-        my ($u) = @Q.splice( @Q.keys.min({ %total-risk{$_} }), 1 );
+        my ($u) = @Q.splice( @Q.keys.min({ %dist{ @Q[$_] } }), 1 );
+
+        # die "Unexpected: items in Q should not have been marked as done." if %done{$u};
 
         %done{$u} = True;
         last if $u eq $goal;
@@ -78,15 +75,15 @@ sub solve-with-shortestpath(IO::Path() $input) {
         for neighbours($u).values -> $v {
             next if %done{$v};
 
-            my $risk = (%total-risk{$u} + %risk{$v});
-            if $risk < (%total-risk{$v} // Inf) {
-                %total-risk{$v} = $risk;
+            my $r = %dist{$u} + %risk{$v};
+            if $r < (%dist{$v} // Inf) {
+                %dist{$v} = $r;
                 @Q.push($v);
             }
         }
     }
 
-    say %total-risk{ $goal };
+    say %dist{ $goal };
 }
 
 sub expand(@grid) {
