@@ -14,14 +14,26 @@ sub solve-with-spfa (@risk) {
     my $h = @risk.elems;
     my $w = @risk[0].elems;
 
+    my %Q = ();
     my @Q = [];
-    @Q.push([0,0]);
+    my sub maybe-enqueue ($v)  {
+        return if %Q{$v};
+        @Q.push($v);
+        %Q{$v} = True
+    }
+    my sub dequeue ()    {
+        my $v = @Q.shift;
+        %Q{$v}:delete; $v
+    }
+
+    maybe-enqueue([0,0]);
 
     while @Q.elems > 0 {
-        my $u = @Q.shift;
+        my $u = dequeue();
 
         my ($y, $x) = $u.[0,1];
-        my @neighbours = ([$y+1,$x], [$y,$x+1], [$y-1,$x], [$y,$x-1]).grep({ 0 <= .[0] < $h && 0 <= .[1] < $w });
+        my @neighbours = ([$y+1,$x], [$y,$x+1], [$y-1,$x], [$y,$x-1])
+                             .grep({ 0 <= .[0] < $h && 0 <= .[1] < $w });
 
         for @neighbours -> $v {
             my $w = @risk[$v[0]][$v[1]];
@@ -29,10 +41,7 @@ sub solve-with-spfa (@risk) {
             my $d = @dist[$u[0]][$u[1]] + $w;
             if $d < @dist[$v[0]][$v[1]] {
                 @dist[$v[0]][$v[1]] = $d;
-
-                unless @Q.first({ $_ eqv $v }) {
-                    @Q.push($v);
-                }
+                maybe-enqueue($v);
             }
         }
     }
