@@ -1,0 +1,106 @@
+
+sub MAIN(IO::Path() $input) {
+    solve-with-naive($input);
+
+    ## XXX: incorrect
+    ## solve-with-shortestpath($input);
+}
+
+sub solve-with-naive(IO::Path() $input) {
+    my @risk = expand $input.lines.map({ .comb.map({ .Int }).Array }).Array;
+    my @memo = @risk.map({ (Inf xx $_.elems).Array }).Array;
+    @memo[0][0] = 0;
+
+    my $rows = @memo.elems;
+    my $cols = @memo[0].elems;
+
+    my $updated = True;
+    while $updated {
+        $updated = False;
+        for ^$rows -> $y {
+            for ^$cols -> $x {
+                next if $y == 0 && $x == 0;
+
+                my @neighbour_risk;
+
+                @neighbour_risk.push( @memo[$y][$x+1] ) if $x < $cols-1;
+                @neighbour_risk.push( @memo[$y][$x-1] ) if $x > 0;
+                @neighbour_risk.push( @memo[$y+1][$x] ) if $y < $rows-1;
+                @neighbour_risk.push( @memo[$y-1][$x] ) if $y > 0;
+
+                if @neighbour_risk.elems > 0 {
+                    my $risk = @neighbour_risk.min() + @risk[$y][$x];
+                    if $risk != @memo[$y][$x] {
+                        @memo[$y][$x] = $risk;
+                        $updated = True;
+                    }
+                }
+            }
+        }
+    }
+
+    say @memo[*-1][*-1];
+}
+
+sub solve-with-shortestpath(IO::Path() $input) {
+    my @risk = expand $input.lines.map({ .comb.map({ .Int }).Array }).Array;
+
+    my $h = @risk.elems;
+    my $w = @risk[0].elems;
+
+    my sub neighbours ($u) {
+        my ($y, $x) = $u.split(",");
+        ([1,0], [0,1], [-1,0], [0,-1])
+        .map({ $_ <<+>> ($y, $x) })
+        .grep({ 0 <= .[0] < $h && 0 <= .[1] < $w })
+        .map({ .join(",") });
+    }
+
+    my %risk = (^$h X ^$w).map(-> ($y, $x) { "$y,$x" => @risk[$y][$x] });
+
+    my $goal = ($h-1, $w-1).join(",");
+    my %total-risk = ( "0,0" => 0 );
+    my @Q = ["0,0"];
+    my %done;
+
+    while @Q.elems > 0 {
+        # Take smallest item.
+        my ($u) = @Q.splice( @Q.keys.min({ %risk{$_} }), 1 );
+
+        %done{$u} = True;
+        last if $u eq $goal;
+
+        for neighbours($u) -> $v {
+            next if %done{$v};
+
+            my $risk = (%total-risk{$u} + %risk{$v});
+            if $risk < (%total-risk{$v} // Inf) {
+                %total-risk{$v} = $risk;
+                @Q.push($v);
+            }
+        }
+    }
+
+    say %total-risk{ $goal };
+}
+
+sub expand(@grid) {
+    my @grid2 = @grid;
+
+    my $h = @grid.elems;
+    my $w = @grid[0].elems;
+
+    for $h..^(5 * $h) -> $y {
+        for ^$w -> $x {
+            @grid2[$y][$x] = @grid2[$y - $h][$x] % 9 + 1;
+        }
+    }
+
+    for ^(5 * $h) -> $y {
+        for $w..^(5 * $w) -> $x {
+            @grid2[$y][$x] = @grid2[$y][$x - $w] % 9 + 1;
+        }
+    }
+
+    return @grid2;
+}
