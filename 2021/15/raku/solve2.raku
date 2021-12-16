@@ -15,13 +15,18 @@ sub solve-with-spfa (@risk) {
     my $goal = ($h-1, $w-1).join(",");
 
     my sub weight ($u, $v) {
+        state %memo;
+        return %memo{$v} if %memo{$v}:exists;
+
         my ($y,$x) = $v.split(",");
-        return @risk[$y][$x];
+        return %memo{$v} = @risk[$y][$x];
     }
 
     my sub neighbours ($v) {
+        state %memo;
+        return %memo{$v} if %memo{$v}:exists;
         my ($y,$x) = $v.split(",");
-        return (
+        return %memo{$v} //= (
             [$y-1, $x],
             [$y+1, $x],
             [$y, $x-1],
@@ -30,7 +35,7 @@ sub solve-with-spfa (@risk) {
             { (0 <= .[0] < $h) && (0 <= .[1] < $w) }
         ).map(
             { .join(",") }
-        );
+        ).Array;
     }
 
     my $dist = spfa( $source, $goal, &neighbours, &weight );
