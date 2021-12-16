@@ -1,52 +1,65 @@
 
 sub MAIN(IO::Path() $input) {
     my @risk = expand $input.lines.map({ .comb.map({ .Int }).Array }).Array;
-    # solve-with-naive(@risk);
 
     solve-with-spfa(@risk);
+    # solve-with-naive(@risk);
     # solve-with-dijkstra(@risk);
 }
 
 sub solve-with-spfa (@risk) {
-    my @dist = @risk.map({ (Inf xx $_.elems).Array }).Array;
-    @dist[0][0] = 0;
-
     my $h = @risk.elems;
     my $w = @risk[0].elems;
 
-    my %Q = ();
-    my @Q = [];
-    my sub maybe-enqueue ($v)  {
-        return if %Q{$v};
-        @Q.push($v);
-        %Q{$v} = True
-    }
-    my sub dequeue ()    {
-        my $v = @Q.shift;
-        %Q{$v}:delete; $v
+    my $source = (0,0).join(",");
+    my $goal = ($h-1, $w-1).join(",");
+
+    my sub weight ($u, $v) {
+        my ($y,$x) = $v.split(",");
+        return @risk[$y][$x];
     }
 
-    maybe-enqueue([0,0]);
+    my sub neighbours ($v) {
+        my ($y,$x) = $v.split(",");
+        return (
+            [$y-1, $x],
+            [$y+1, $x],
+            [$y, $x-1],
+            [$y, $x+1],
+        ).grep(
+            { (0 <= .[0] < $h) && (0 <= .[1] < $w) }
+        ).map(
+            { .join(",") }
+        );
+    }
+
+    my $dist = spfa( $source, $goal, &neighbours, &weight );
+    say $dist;
+}
+
+sub spfa ($source, $goal, &neighbours, &weight) {
+    my %dist = ( $source => 0 );
+
+    my %Q = ();
+    my @Q = [];
+    my sub in-queue ($v) { %Q{$v} }
+    my sub enqueue  ($v) { @Q.push($v); %Q{$v} = True }
+    my sub dequeue  ()   { my $v = @Q.shift; %Q{$v}:delete; $v }
+
+    enqueue($source);
 
     while @Q.elems > 0 {
         my $u = dequeue();
-
-        my ($y, $x) = $u.[0,1];
-        my @neighbours = ([$y+1,$x], [$y,$x+1], [$y-1,$x], [$y,$x-1])
-                             .grep({ 0 <= .[0] < $h && 0 <= .[1] < $w });
-
-        for @neighbours -> $v {
-            my $w = @risk[$v[0]][$v[1]];
-
-            my $d = @dist[$u[0]][$u[1]] + $w;
-            if $d < @dist[$v[0]][$v[1]] {
-                @dist[$v[0]][$v[1]] = $d;
-                maybe-enqueue($v);
+        for neighbours($u).values -> $v {
+            my $d = %dist{$u} + weight($u, $v);
+            if $d < (%dist{$v} // Inf) {
+                %dist{$v} = $d;
+                enqueue($v) unless in-queue($v);
             }
         }
     }
 
-    say @dist[*-1][*-1];
+    return %dist{$goal};
 }
 
 sub solve-with-naive(@risk) {
