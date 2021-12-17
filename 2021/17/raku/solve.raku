@@ -37,7 +37,7 @@ sub simulate ($xvol is copy, $yvol is copy, $xrange, $yrange) {
     my ($x, $y) = (0, 0);
 
     my sub is-inside {
-        $x ~~ $xrange && $y ~~ $yrange
+        $x ∈ $xrange && $y ∈ $yrange
     }
 
     my sub overshoot {
