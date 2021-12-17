@@ -9,16 +9,23 @@ sub MAIN(IO::Path() $input) {
     my @Vx = vx-range($xrange);
     my @Vy = vy-range($yrange);
 
+    my $solutions = 0;
     my $ymax = -Inf;
     for @Vx -> $vx {
         for @Vy -> $vy {
             my %res = simulate($vx, $vy, $xrange, $yrange);
             if %res<inside> {
                 $ymax = max($ymax, %res<ymax>);
+                $solutions++;
             }
         }
     }
+
+    say "# Part 1";
     say $ymax;
+
+    say "# Part 2";
+    say $solutions;
 }
 
 sub vy-range ($yrange) {
