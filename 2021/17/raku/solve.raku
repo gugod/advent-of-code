@@ -10,9 +10,9 @@ sub MAIN(IO::Path() $input) {
     my $ymax = -Inf;
     for vx-range($xrange) -> $vx {
         for vy-range($yrange) -> $vy {
-            my %res = simulate($vx, $vy, $xrange, $yrange);
-            if %res<inside> {
-                $ymax = max($ymax, %res<ymax>);
+            my ($hit, $y) = simulate($vx, $vy, $xrange, $yrange);
+            if $hit {
+                $ymax = max($ymax, $y);
                 $solutions++;
             }
         }
@@ -36,23 +36,20 @@ sub vx-range ($xrange) {
 sub simulate ($xvol is copy, $yvol is copy, $xrange, $yrange) {
     my ($x, $y) = (0, 0);
 
-    my sub is-inside {
-        $x ∈ $xrange && $y ∈ $yrange
-    }
+    my $hit = False;
+    my $ymax = 0;
+    while $y >= $yrange.min() && $x <= $xrange.max() {
+        if  $y <= $yrange.max() && $x >= $xrange.min() {
+            $hit = True;
+            last;
+        }
 
-    my sub overshoot {
-        ($y < $yrange.min() || $x > $xrange.max())
-    }
-
-    my $ymax = -Inf;
-    while !is-inside() && !overshoot() {
         $x += $xvol;
         $y += $yvol;
         $xvol -= sign($xvol);
         $yvol -= 1;
-
         $ymax = max($ymax, $y);
     }
 
-    return ( :inside(is-inside()), :ymax($ymax) );
+    return ($hit, $ymax);
 }
