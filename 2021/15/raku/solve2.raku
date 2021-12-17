@@ -1,6 +1,6 @@
 
 sub MAIN(IO::Path() $input) {
-    my @risk = expand $input.lines.map({ .comb.map({ .Int }).Array }).Array;
+    my @risk = expand $input.lines.map({ .comb.map({ .Int }) });
 
     solve-with-spfa(@risk);
     # solve-with-naive(@risk);
