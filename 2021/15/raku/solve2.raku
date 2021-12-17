@@ -49,7 +49,7 @@ sub spfa ($source, $goal, &neighbours, &weight) {
     my @Q = [];
     my sub in-queue ($v) { %Q{$v} }
     my sub enqueue  ($v) { @Q.push($v); %Q{$v} = True }
-    my sub dequeue  ()   { my $v = @Q.shift; %Q{$v}:delete; $v }
+    my sub dequeue  ()   { %Q{ @Q.shift }:delete:k }
 
     enqueue($source);
 
