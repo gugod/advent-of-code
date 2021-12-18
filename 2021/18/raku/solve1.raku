@@ -12,6 +12,10 @@ class SnailfishNum {
     }
 }
 
+multi infix:<+> (SnailfishNum $a, SnailfishNum $b --> SnailfishNum) {
+    return SnailfishNum.new(:head($a), :tail($b));
+}
+
 grammar SnailfishNumParser {
     token TOP { <pair> }
     token pair { '[' <head> ',' <tail> ']' }
@@ -51,7 +55,8 @@ sub parse-snailfish-number (Str $s) {
 }
 
 sub MAIN (IO::Path() $input) {
-    my $sf = parse-snailfish-number("[3,[1,2]]");
+    my $s1 = parse-snailfish-number("[1,2]");
+    my $s2 = parse-snailfish-number("[3,4]");
 
-    say $sf.gist;
+    say $s1 + $s2;
 }
