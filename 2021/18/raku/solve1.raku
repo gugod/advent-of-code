@@ -5,7 +5,21 @@ class SnailfishNum {
     has SnailfishNum $.tail is rw;
     has SnailfishNum $.head is rw;
 
-    method is-pair { ! $.value.defined }
+    method is-leaf { $.value.defined }
+
+    method leftmost-deeply-nested-pair-of-numbers {
+        my @stack;
+        @stack.push([self,0]);
+        while @stack.elems > 0 {
+            my ($p, $level) = @stack.pop;
+            if $p.value.defined && $p.tail.value.defined {
+                return $p if $level >= 4;
+            }
+            if $p.down.defined {
+                @stack.push($p, $level+1);
+            }
+        }
+    }
 
     method nested-too-deep {
         my $level = 0;
@@ -18,18 +32,18 @@ class SnailfishNum {
     }
 
     method next-value {
-        return Nil if $.is-pair;
+        return Nil unless $.is-leaf;
         return $.tail if $.tail.defined;
         my $p = self;
         $p = $p.up while $p.up && !$p.tail;
         return Nil unless $p.tail;
         $p = $p.tail;
-        $p = $p.down while $p.is-pair;
+        $p = $p.down until $p.is-leaf;
         return $p;
     }
 
     method prev-value {
-        return Nil if $.is-pair;
+        return Nil unless $.is-leaf;
         my $p = $.head;
         return Nil unless $p;
         $p = $p.down.tail while $p.down;
@@ -104,12 +118,12 @@ sub MAIN (IO::Path() $input) {
     say $s;
     say $s.nested-too-deep; # False
 
-    my $d = $s.down.down.down.down.down;
-    # my $d = $s.down.tail;
+    # my $d = $s.down.down.down.down.down;
+    my $d = $s.down.tail;
     while $d {
         say $d.gist;
-        # $d = $d.prev-value;
-        $d = $d.next-value;
+        $d = $d.prev-value;
+        # $d = $d.next-value;
     }
 }
 
