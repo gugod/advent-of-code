@@ -2,14 +2,13 @@
 sub MAIN(IO::Path() $input) {
     # my $spec = "target area: x=20..30, y=-10..-5";
     my $spec = $input.slurp;
-    my @nums = $spec.comb(/\-?\d+/)>>.Int;
-    my $xrange = Range.new(|@nums[0, 1]);
-    my $yrange = Range.new(|@nums[2, 3]);
+    my ($xrange, $yrange) = $spec.comb(/\-?\d+/)>>.Int.batch(2).map({ Range.new(|$_) });
 
     my $solutions = 0;
     my $ymax = -Inf;
-    for vx-range($xrange) -> $vx {
-        for vy-range($yrange) -> $vy {
+
+    for floor(sqrt(2* $xrange.min))..$xrange.max() -> $vx {
+        for $yrange.min .. $yrange.min.abs -> $vy {
             my ($hit, $y) = simulate($vx, $vy, $xrange, $yrange);
             if $hit {
                 $ymax = max($ymax, $y);
@@ -25,15 +24,7 @@ sub MAIN(IO::Path() $input) {
     say $solutions;
 }
 
-sub vy-range ($yrange) {
-    $yrange.min..$yrange.min.abs;
-}
-
-sub vx-range ($xrange) {
-    floor(sqrt(2* $xrange.min))..$xrange.max()
-}
-
-sub simulate ($xvol is copy, $yvol is copy, $xrange, $yrange) {
+sub simulate ($vx is copy, $vy is copy, $xrange, $yrange) {
     my ($x, $y) = (0, 0);
 
     my $hit = False;
@@ -43,11 +34,8 @@ sub simulate ($xvol is copy, $yvol is copy, $xrange, $yrange) {
             $hit = True;
             last;
         }
-
-        $x += $xvol;
-        $y += $yvol;
-        $xvol -= sign($xvol);
-        $yvol -= 1;
+        ($x, $y) «+=» ($vx, $vy);
+        ($vx, $vy) «+=» (sign($vx), 1);
         $ymax = max($ymax, $y);
     }
 
