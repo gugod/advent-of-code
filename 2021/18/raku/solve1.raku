@@ -3,20 +3,33 @@ class SnailfishNum {
     has SnailfishNum $.up is rw;
     has SnailfishNum $.down is rw;
     has SnailfishNum $.tail is rw;
+    has SnailfishNum $.head is rw;
+
+    method next-value {
+        return Nil unless $.value;
+        return $.tail if $.tail.defined;
+        my $p = self;
+        $p = $p.up while $p.up && !$p.tail;
+        return Nil unless $p.tail;
+        $p = $p.tail;
+        $p = $p.down until $p.value.defined;
+        return $p;
+    }
+
+    method prev-value {
+        return Nil unless $.value;
+        return $.head if $.head.defined;
+        my $p = self;
+        $p = $p.up while $p.up && !$p.head;
+        return Nil unless $p.head;
+        $p = $p.head;
+        $p = $p.down.tail until $p.value.defined;
+        return $p;
+    }
 
     method gist {
-        my $str = "";
-
-        if $.down.defined {
-            $str ~= "[" ~ $.down.gist ~ "]";
-        } else {
-            $str ~= $.value;
-        }
-        if $.tail.defined {
-            $str ~= "," ~ $.tail.gist;
-        }
-
-        return  $str;
+        return $.value if $.value.defined;
+        return "[" ~ $.down.gist ~ "," ~ $.down.tail.gist ~ "]";
     }
 }
 
@@ -24,6 +37,7 @@ multi infix:<+> (SnailfishNum $a, SnailfishNum $b --> SnailfishNum) {
     my $o = SnailfishNum.new(:down($a));
     $a.up = $o;
     $a.tail = $b;
+    $b.head = $a;
     $b.up = $o;
     return $o;
 }
@@ -45,6 +59,7 @@ class SnailfishNumBuilder {
         my $h = $/.<head>.made;
         my $t = $/.<tail>.made;
         $h.tail = $t;
+        $t.head = $h;
 
         my $o = SnailfishNum.new();
         $t.up = $o;
@@ -81,6 +96,20 @@ sub MAIN (IO::Path() $input) {
     my $s3 = parse-snailfish-number("[5,6]");
     my $s = $s1 + $s2 + $s3;
     say $s.gist;
+
+    say "# next-value";
+    my $n = $s.down.down.down;
+    while $n.defined {
+        say $n.gist;
+        $n = $n.next-value;
+    }
+
+    say "# prev-value";
+    $n = $s.down.tail.down.tail;
+    while $n.defined {
+        say $n.gist;
+        $n = $n.prev-value;
+    }
 }
 
 sub part1 (IO::Path() $input) {
