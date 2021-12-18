@@ -148,11 +148,10 @@ sub solve-with-dijkstra(@risk) {
 }
 
 sub expand(@grid) {
-    my @grid2 = [];
-
     my $h = @grid.elems;
     my $w = @grid[0].elems;
 
+    my @grid2;
     for ^(5 * $h) -> $y {
         for ^(5 * $w) -> $x {
             @grid2[$y][$x] = (@grid[$y % $h][$x % $w] + ($x div $w) + ($y div $h) - 1) % 9 + 1;
