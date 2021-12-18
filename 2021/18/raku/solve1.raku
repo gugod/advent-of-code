@@ -5,25 +5,34 @@ class SnailfishNum {
     has SnailfishNum $.tail is rw;
     has SnailfishNum $.head is rw;
 
+    method is-pair { ! $.value.defined }
+
+    method nested-too-deep {
+        my $level = 0;
+        my $p = self;
+        while $p.up {
+            $level++;
+            $p = $p.up;
+        }
+        return $level >= 4;
+    }
+
     method next-value {
-        return Nil unless $.value;
+        return Nil if $.is-pair;
         return $.tail if $.tail.defined;
         my $p = self;
         $p = $p.up while $p.up && !$p.tail;
         return Nil unless $p.tail;
         $p = $p.tail;
-        $p = $p.down until $p.value.defined;
+        $p = $p.down while $p.is-pair;
         return $p;
     }
 
     method prev-value {
-        return Nil unless $.value;
-        return $.head if $.head.defined;
-        my $p = self;
-        $p = $p.up while $p.up && !$p.head;
-        return Nil unless $p.head;
-        $p = $p.head;
-        $p = $p.down.tail until $p.value.defined;
+        return Nil if $.is-pair;
+        my $p = $.head;
+        return Nil unless $p;
+        $p = $p.down.tail while $p.down;
         return $p;
     }
 
@@ -91,24 +100,16 @@ sub parse-snailfish-number (Str $s) {
 }
 
 sub MAIN (IO::Path() $input) {
-    my $s1 = parse-snailfish-number("[1,2]");
-    my $s2 = parse-snailfish-number("[3,4]");
-    my $s3 = parse-snailfish-number("[5,6]");
-    my $s = $s1 + $s2 + $s3;
-    say $s.gist;
+    my $s = parse-snailfish-number("[[[[[9,8],1],2],3],4]");
+    say $s;
+    say $s.nested-too-deep; # False
 
-    say "# next-value";
-    my $n = $s.down.down.down;
-    while $n.defined {
-        say $n.gist;
-        $n = $n.next-value;
-    }
-
-    say "# prev-value";
-    $n = $s.down.tail.down.tail;
-    while $n.defined {
-        say $n.gist;
-        $n = $n.prev-value;
+    my $d = $s.down.down.down.down.down;
+    # my $d = $s.down.tail;
+    while $d {
+        say $d.gist;
+        # $d = $d.prev-value;
+        $d = $d.next-value;
     }
 }
 
