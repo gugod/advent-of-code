@@ -10,6 +10,16 @@ class SnailfishNum {
 
     method is-leaf { $.value.defined }
 
+    method level {
+        my $level = -1;
+        my $p = self;
+        while $p {
+            $level++;
+            $p = $p.up;
+        }
+        return $level;
+    }
+
     method leftmost-leaf {
         my $p = self;
         $p = $p.down while $p.down.defined;
@@ -20,6 +30,33 @@ class SnailfishNum {
         my $p = self;
         $p = $p.down.tail while $p.down.defined;
         return $p;
+    }
+
+    method leftmost-pair {
+        my $p = self.leftmost-leaf;
+        my $q = $p.tail;
+
+        until $p.is-leaf {
+            $p = $p.next-leaf;
+            $q = $p.tail;
+        }
+
+        return $p.up;
+    }
+
+    method next-pair {
+        return Nil if self.is-leaf;
+
+        my $p = self.down.tail.next-leaf;
+
+        while $p {
+            if $p.tail && $p.tail.is-leaf {
+                return $p.up;
+            }
+            $p = $p.next-leaf;
+        }
+
+        return Nil;
     }
 
     method all-oversized-leaf {
@@ -35,38 +72,24 @@ class SnailfishNum {
     }
 
     method leftmost-oversized-leaf {
-        my @stack;
-        @stack.push( $[self,0] );
-        while @stack.elems > 0 {
-            my ($p, $level) = @stack.pop;
-            if $p.value.defined {
-                return $p if $p.value > 9;
-            }
-            if $p.down.defined {
-                if $p.down.tail.defined {
-                    @stack.push($[ $p.down.tail, $level+1 ]);
-                }
-                @stack.push($[ $p.down, $level+1 ]);
-            }
+        my $p = self.leftmost-leaf;
+        while $p {
+            return $p if $p.value > 9;
+            $p = $p.next-leaf;
         }
         return Nil;
     }
 
     method leftmost-deeply-nested-pair-of-numbers {
-        my @stack;
-        @stack.push( $[self,0] );
-        while @stack.elems > 0 {
-            my ($p, $level) = @stack.pop;
-            if $p.value.defined && $p.tail && $p.tail.value.defined {
-                return $p.up if $level > 4;
+        my $p = self.leftmost-pair;
+
+        while $p {
+            if $p.level >= 4 {
+                return $p;
             }
-            if $p.down.defined {
-                if $p.down.tail.defined {
-                    @stack.push($[$p.down.tail, $level+1]);
-                }
-                @stack.push($[$p.down, $level+1]);
-            }
+            $p = $p.next-pair;
         }
+
         return Nil;
     }
 
@@ -83,14 +106,16 @@ class SnailfishNum {
     method explode {
         # Only works when invoked on the node that holds 2 leaf nodes.
         return Nil unless $.down.defined && $.down.value.defined && $.down.tail.value.defined;
-        say "exploding... " ~ self.gist;
         my $p = $.down.prev-leaf;
-        say "... prev-leaf: " ~ $p.gist;
-        $p.value += $.down.value if $p;
-
-        $p = $.down.tail.next-leaf;
-        $p.value += $.down.tail.value if $p;
-
+        my $q = $.down.tail.next-leaf;
+        if $p {
+            $p.value += $.down.value;
+            $p.next-leaf = self;
+        }
+        if $q {
+            $q.value += $.down.tail.value;
+            $q.prev-leaf = self;
+        }
         $.down = Nil;
         $.value = 0;
     }
@@ -111,20 +136,28 @@ class SnailfishNum {
     }
 
     method reduce {
-        loop {
+        my $c = 0;
+        while $c < 2 {
+            $c = 0;
             my $p = self.leftmost-deeply-nested-pair-of-numbers;
             if $p {
+                say "Explode this: " ~ $p.gist;
                 $p.explode;
-                say "After explode: " ~ self.gist;
                 next;
+            } else {
+                $c += 1;
             }
 
             my $q = self.leftmost-oversized-leaf;
             if $q {
+                say "Split at " ~ $q;
                 $q.split;
                 say "After split: " ~ self.gist;
+            } else {
+                $c += 1;
             }
-            last unless $p || $q;
+
+            last if $c == 2;
         }
     }
 
@@ -198,13 +231,54 @@ sub parse-snailfish-number (Str $s) {
 }
 
 sub MAIN (IO::Path() $input) {
-    test-num-seq();
-    exit();
-    my @s =("[[[[4,3],4],4],[7,[[8,4],9]]]", "[1,1]").map({ parse-snailfish-number($_) });
+    test-reduce();
+}
+
+sub test-level {
+    my $s = parse-snailfish-number("[10,[20,30]]");
+    my $p = $s.leftmost-leaf;
+    while $p {
+        say $p.value;
+        say $p.level;
+        $p = $p.next-leaf;
+    }
+}
+
+sub test-inspect2 {
+    my @s =("[[[0,7],4],[7,[[8,4],9]]]", "[1,1]").map({ parse-snailfish-number($_) });
     my $r = [+] @s;
-    say $r;
+    say $r.gist;
+
+    say "# Leftmost pair";
+    my $p = $r.leftmost-pair;
+    say $p.gist;
+
+    say "# The next pair";
+    $p = $p.next-pair;
+    say $p.gist;
+}
+
+sub test-inspect1 {
+    my $s = parse-snailfish-number("[[[[0,7],4],[7,[[8,4],9]]],[1,1]]");
+    say $s.gist;
+    my $p = $s.leftmost-leaf;
+    while $p {
+        say $p.value ~ "\t" ~ $p.level;
+        $p = $p.next-leaf;
+    }
+    say "# Explode this";
+    say $s.leftmost-deeply-nested-pair-of-numbers.gist;
+}
+
+sub test-reduce {
+    # my @s =("[[[[4,3],4],4],[7,[[8,4],9]]]", "[1,1]").map({ parse-snailfish-number($_) });
+    # my $r = [+] @s;
+
+    my $r = parse-snailfish-number("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]");
+
+    say "r: " ~ $r.gist;
     $r.reduce;
-    say $r;
+    say "after reduce: " ~ $r.gist;
 }
 
 sub test-num-seq {
