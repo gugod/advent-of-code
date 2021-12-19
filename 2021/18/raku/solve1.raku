@@ -8,6 +8,11 @@ class SnailfishNum {
     has SnailfishNum $.prev-leaf is rw;
     has SnailfishNum $.next-leaf is rw;
 
+    method magnitude {
+        return $.value if self.is-leaf;
+        return 3 * $.down.magnitude + 2 * $.down.tail.magnitude;
+    }
+
     method is-leaf { $.value.defined }
 
     method level {
@@ -36,7 +41,7 @@ class SnailfishNum {
         my $p = self.leftmost-leaf;
         my $q = $p.tail;
 
-        until $p.is-leaf {
+        until $q.is-leaf {
             $p = $p.next-leaf;
             $q = $p.tail;
         }
@@ -111,10 +116,12 @@ class SnailfishNum {
         if $p {
             $p.value += $.down.value;
             $p.next-leaf = self;
+            $.prev-leaf = $p;
         }
         if $q {
             $q.value += $.down.tail.value;
             $q.prev-leaf = self;
+            $.next-leaf = $q;
         }
         $.down = Nil;
         $.value = 0;
@@ -130,34 +137,37 @@ class SnailfishNum {
         my $t = SnailfishNum.new( :value($b), :up(self) );
         $h.tail = $t;
         $t.head = $h;
+        $h.next-leaf = $t;
+        $t.prev-leaf = $h;
+        $h.prev-leaf = $.prev-leaf;
+        $t.next-leaf = $.next-leaf;
 
-        $.value = Nil;
+        $.prev-leaf.next-leaf = $h if $.prev-leaf;
+        $.next-leaf.prev-leaf = $t if $.next-leaf;
+
         $.down = $h;
+        $.prev-leaf = Nil;
+        $.next-leaf = Nil;
+        $.value = Nil;
     }
 
     method reduce {
-        my $c = 0;
-        while $c < 2 {
+        my $c = 1;
+        while $c != 0 {
             $c = 0;
             my $p = self.leftmost-deeply-nested-pair-of-numbers;
             if $p {
-                say "Explode this: " ~ $p.gist;
                 $p.explode;
-                next;
-            } else {
                 $c += 1;
             }
 
-            my $q = self.leftmost-oversized-leaf;
-            if $q {
-                say "Split at " ~ $q;
-                $q.split;
-                say "After split: " ~ self.gist;
-            } else {
-                $c += 1;
+            if $c == 0 {
+                my $q = self.leftmost-oversized-leaf;
+                if $q {
+                    $q.split;
+                    $c++;
+                }
             }
-
-            last if $c == 2;
         }
     }
 
@@ -175,6 +185,7 @@ multi infix:<+> (SnailfishNum $a, SnailfishNum $b --> SnailfishNum) {
     $b.up = $o;
     $a.rightmost-leaf.next-leaf = $b.leftmost-leaf;
     $b.leftmost-leaf.prev-leaf = $a.rightmost-leaf;
+    $o.reduce;
     return $o;
 }
 
@@ -231,7 +242,31 @@ sub parse-snailfish-number (Str $s) {
 }
 
 sub MAIN (IO::Path() $input) {
-    test-reduce();
+    my @s = $input.lines.map(&parse-snailfish-number);
+    my $r = [+] @s;
+    say $r.magnitude;
+}
+
+sub test-reduce2 {
+    my $s = parse-snailfish-number("[[[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]],[[[5,[2,8]],4],[5,[[9,9],0]]]],[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]]");
+    say $s;
+    $s.reduce;
+    say $s;
+}
+
+sub test-magnitude {
+    for (
+        ["[[1,2],[[3,4],5]]", 143],
+        ["[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", 1384],
+        ["[[[[1,1],[2,2]],[3,3]],[4,4]]", 445],
+        ["[[[[3,0],[5,3]],[4,4]],[5,5]]", 791],
+        ["[[[[5,0],[7,4]],[5,5]],[6,6]]", 1137],
+        ["[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", 3488],
+    ) -> [$str, $expected] {
+        my $s = parse-snailfish-number($str);
+        my $m = $s.magnitude();
+        say ($m == $expected ?? "ok" !! "not ok") ~ " $m vs $expected <- $str";
+    }
 }
 
 sub test-level {
@@ -270,15 +305,37 @@ sub test-inspect1 {
     say $s.leftmost-deeply-nested-pair-of-numbers.gist;
 }
 
-sub test-reduce {
-    # my @s =("[[[[4,3],4],4],[7,[[8,4],9]]]", "[1,1]").map({ parse-snailfish-number($_) });
-    # my $r = [+] @s;
+sub inspect-right-to-left (SnailfishNum $s){
+    my $p = $s.rightmost-leaf;
+    my @out;
+    while $p {
+        @out.push($p.value);
+        $p = $p.prev-leaf;
+    }
+    say @out.gist;
+}
 
-    my $r = parse-snailfish-number("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]");
+sub inspect-left-to-right (SnailfishNum $s){
+    my $p = $s.leftmost-leaf;
+    my @out;
+    while $p {
+        @out.push($p.value);
+        $p = $p.next-leaf;
+    }
+    say @out.gist;
+}
+
+sub test-reduce {
+    my @s =("[[[[4,3],4],4],[7,[[8,4],9]]]", "[1,1]").map({ parse-snailfish-number($_) });
+    my $r = [+] @s;
+
+    # my $r = parse-snailfish-number("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]");
 
     say "r: " ~ $r.gist;
     $r.reduce;
     say "after reduce: " ~ $r.gist;
+    inspect-right-to-left($r);
+    inspect-left-to-right($r);
 }
 
 sub test-num-seq {
