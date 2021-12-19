@@ -242,9 +242,18 @@ sub parse-snailfish-number (Str $s) {
 }
 
 sub MAIN (IO::Path() $input) {
-    my @s = $input.lines.map(&parse-snailfish-number);
-    my $r = [+] @s;
-    say $r.magnitude;
+    my @lines = $input.lines.cache;
+    # say "# Part 1";
+    # my @s = @lines.map(&parse-snailfish-number);
+    # my $r = [+] @s;
+    # say $r.magnitude;
+
+    say "# Part 2";
+    say @lines.combinations(2).map(*.permutations.Slip).map(
+        {
+            $_.map(&parse-snailfish-number).reduce(&infix:<+>).magnitude
+        }
+    ).max;
 }
 
 sub test-reduce2 {
