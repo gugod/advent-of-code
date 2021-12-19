@@ -1,5 +1,5 @@
 class SnailfishNum {
-    has Int $.value;
+    has Int $.value is rw;
     has SnailfishNum $.up is rw;
     has SnailfishNum $.down is rw;
     has SnailfishNum $.tail is rw;
@@ -7,18 +7,41 @@ class SnailfishNum {
 
     method is-leaf { $.value.defined }
 
-    method leftmost-deeply-nested-pair-of-numbers {
+    method leftmost-oversized-number {
         my @stack;
-        @stack.push([self,0]);
+        @stack.push( $[self,0] );
         while @stack.elems > 0 {
             my ($p, $level) = @stack.pop;
-            if $p.value.defined && $p.tail.value.defined {
-                return $p if $level >= 4;
+            if $p.value.defined {
+                return $p if $p.value > 9;
             }
             if $p.down.defined {
-                @stack.push($p, $level+1);
+                if $p.down.tail.defined {
+                    @stack.push($[ $p.down.tail, $level+1 ]);
+                }
+                @stack.push($[ $p.down, $level+1 ]);
             }
         }
+        return Nil;
+    }
+
+    method leftmost-deeply-nested-pair-of-numbers {
+        my @stack;
+        @stack.push( $[self,0] );
+        while @stack.elems > 0 {
+            my ($p, $level) = @stack.pop;
+            say "Check: (level=$level) $p";
+            if $p.value.defined && $p.tail.value.defined {
+                return $p.up if $level >= 4;
+            }
+            if $p.down.defined {
+                if $p.down.tail.defined {
+                    @stack.push($[$p.down.tail, $level+1]);
+                }
+                @stack.push($[$p.down, $level+1]);
+            }
+        }
+        return Nil;
     }
 
     method nested-too-deep {
@@ -48,6 +71,19 @@ class SnailfishNum {
         return Nil unless $p;
         $p = $p.down.tail while $p.down;
         return $p;
+    }
+
+    method explode {
+        # Only works when invoked on the node that holds 2 leaf nodes.
+        return Nil unless $.down.defined && $.down.value.defined && $.down.tail.value.defined;
+        my $p = $.down.prev-value;
+        $p.value += $.down.value if $p;
+
+        $p = $.down.tail.next-value;
+        $.value += $.down.tail.value if $p;
+
+        $.down = Nil;
+        $.value = 0;
     }
 
     method gist {
@@ -114,17 +150,24 @@ sub parse-snailfish-number (Str $s) {
 }
 
 sub MAIN (IO::Path() $input) {
-    my $s = parse-snailfish-number("[[[[[9,8],1],2],3],4]");
+    # my $s = parse-snailfish-number("[[[[[9,8],1],2],10],4]");
+    my $s = parse-snailfish-number("[7,[6,[5,[4,[3,2]]]]]");
     say $s;
-    say $s.nested-too-deep; # False
-
-    # my $d = $s.down.down.down.down.down;
-    my $d = $s.down.tail;
-    while $d {
-        say $d.gist;
-        $d = $d.prev-value;
-        # $d = $d.next-value;
+    my $n;
+    $n = $s.leftmost-oversized-number;
+    if $n {
+        say "Oversized: " ~ $n.gist;
     }
+
+    $n = $s.leftmost-deeply-nested-pair-of-numbers;
+    if $n {
+        say "deeply-nested: " ~ $n.gist;
+        $n.explode;
+        say "After explode";
+        say $n.gist;
+        say $s.gist;
+    }
+
 }
 
 sub part1 (IO::Path() $input) {
