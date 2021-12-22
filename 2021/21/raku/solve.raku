@@ -1,7 +1,7 @@
 sub MAIN(IO::Path() $input) {
     my @start-pos = $input.comb(/\d+/)[1,3];
-    say "Part 1";
-    part1(@start-pos);
+    # say "Part 1";
+    # part1(@start-pos);
 
     say "Part 2";
     part2(@start-pos);
@@ -19,22 +19,25 @@ sub part2(@pos) {
     # 2,3,3	=> 8 => 3
     # 3,3,3	=> 9 => 1
 
-    my sub play (@score is copy,
-                 @pos is copy,
-                 $current-player) {
-
-        return [1, 0] if @score[0] >= 21;
-        return [0, 1] if @score[1] >= 21;
-
-
-        my @wins = [0,0];
-        for ([3,1], [4,3], [5,6], [6,7], [7,6], [8,3], [9,1]) -> ($steps, $unis) {
-            @pos[ $current-player ] = (@pos[ $current-player ] + $steps - 1) % 10 + 1;
-            @score[ $current-player ] += @pos[ $current-player ];
-            @wins <<+=>> play(@score, @pos, 1-$current-player).map({ $_ * $unis });
-        }
-
-        return @wins;
+    my %memo;
+    my sub play (@score, @pos, $player) {
+        return %memo{ [@score,@pos,$player].flat.join(";") } //= &{
+            if @score[0] >= 21 {
+                [1, 0];
+            } elsif @score[1] >= 21 {
+                [0, 1];
+            } else {
+                my @wins = [0,0];
+                for ([3,1], [4,3], [5,6], [6,7], [7,6], [8,3], [9,1]) -> ($steps, $unis) {
+                    my @p = @pos;
+                    my @s = @score;
+                    @p[ $player ] += $steps;
+                    @s[ $player ] += (@p[ $player ] = (@p[ $player ] - 1) % 10 + 1);
+                    @wins <<+=>> play(@s, @p, 1 - $player).map({ $_ * $unis });
+                }
+                @wins;
+            }
+        }();
     }
 
     say play([0,0], @pos, 0);
