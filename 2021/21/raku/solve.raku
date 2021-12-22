@@ -3,8 +3,8 @@ sub MAIN(IO::Path() $input) {
     say "Part 1";
     part1(@start-pos);
 
-    # say "Part 2";
-    # part2(@start-pos);
+    say "Part 2";
+    part2(@start-pos);
 }
 
 sub part2(@pos) {
@@ -26,7 +26,6 @@ sub part2(@pos) {
         return [1, 0] if @score[0] >= 21;
         return [0, 1] if @score[1] >= 21;
 
-        say [@score, @pos, $current-player];
 
         my @wins = [0,0];
         for ([3,1], [4,3], [5,6], [6,7], [7,6], [8,3], [9,1]) -> ($steps, $unis) {
@@ -43,14 +42,13 @@ sub part2(@pos) {
 
 sub part1(@player-pos) {
     my $player = 0;
-    my $dice = 1;
+    my $dice = 0;
     my @player-score = [0, 0];
     my $rolls = 0;
 
     loop {
-        # ($dice % 100 + 1) + (($dice + 1) % 100 + 1) + (($dice + 2) % 100 + 1);
-        @player-pos[$player] += 3*$dice + 3;
-        @player-pos[$player] -= 100 if @player-pos[$player] > 100;
+        @player-pos[$player] += (((3 * $dice + 3) % 100) + 3) % 10;
+        @player-pos[$player] = (@player-pos[$player] - 1) % 10 + 1;
         @player-score[$player] += @player-pos[$player];
 
         $dice = ($dice + 2) % 100 + 1;
