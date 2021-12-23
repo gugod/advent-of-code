@@ -8,28 +8,40 @@ sub MAIN(IO::Path() $input) {
             [$cmd, |@ranges];
         }
     );
+    part1(@instructions);
+}
 
+sub part1 (@instructions) {
     my $limit_x = -50..50;
     my $limit_y = -50..50;
     my $limit_z = -50..50;
 
-    my %grid;
-    for @instructions -> [$cmd, $rx, $ry, $rz] {
-        print [$cmd, $rx, $ry, $rz].gist ~ "\t";
-        for ($rx (&) $limit_x).keys ->$x {
-            for ($ry (&) $limit_y).keys ->$y {
-                for ($rz (&) $limit_z).keys ->$z {
-                    if $cmd eq "on" {
-                        %grid{"$x,$y,$z"} = True;
-                    }
-                    else {
-                        %grid{"$x,$y,$z"}:delete;
-                    }
-                }
-            }
-        }
-        # print %grid.keys.elems ~ "\n";
+    my sub cuboids (@xyzranges) { [*] @xyzranges.map({ .values.elems }) }
+
+    my sub overlaps ($i, $j) {
+        [*] (1,2,3).map:
+            { (@instructions[$i][$_].values (&) @instructions[$j][$_].values).elems }
     }
-    # print "\n";
-    say %grid.keys.elems;
+
+    my @regions;
+    @regions.push({ :switch(@instructions[0][0]), :bound([ @instructions[0][1..3] ]), :memo({}) });
+
+    for @instructions.keys -> $j {
+        my ($cmd, $rx, $ry, $rz) = @instructions[$j];
+        my $cuboids = cuboids([$rx, $ry, $rz]);
+        my %region := {
+            :cmd($cmd),
+            :cuboids( cuboids[ $rx, $ry, $rz ] ),
+            :bound([ $rx, $ry, $rz ]),
+            :memo({})
+        };
+
+        for (^$j).reverse -> $i {
+            my $overlaps = overlaps($i, $j);
+            my $cmd_i = @instructions[$i][0];
+            my $cmd_j = @instructions[$j][0];
+
+        }
+    }
+    say $ons;
 }

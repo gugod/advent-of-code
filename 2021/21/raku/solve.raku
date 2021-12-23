@@ -4,14 +4,16 @@ sub MAIN(IO::Path() $input) {
     part1(@start-pos);
 
     say "# Part 2";
-    part2(@start-pos);
+    part2-recursively(@start-pos);
+    # part2(@start-pos);
+
 }
 
-sub part2(@pos) {
+sub part2(@pos is copy) {
     # list of: @score, @pos, $player, $universes]
     my @stash;
-    @stash.push([[0,0], [0,0], 0, 1]);
-
+    @stash.push([[0,0], @pos, 0, 1]);
+    my $current-max = -Inf;
     my @wins;
     while @stash.elems != 0 {
         my @universe := @stash.pop;
@@ -21,28 +23,27 @@ sub part2(@pos) {
         my $player    = @universe[2];
         my $universes = @universe[3];
 
-        if @score[0] >= 21 {
-            @wins[0] += $universes;
-        }
-        elsif @score[1] >= 21 {
-            @wins[1] += $universes;
-        }
-        else {
-            @stash.append(
-                ([3,1], [4,3], [5,6], [6,7], [7,6], [8,3], [9,1]).map(
-                    -> ($steps, $frequency) {
-                        my @s = @score.clone();
-                        my @p = @pos.clone();
+        @stash.append(
+            ([3,1], [4,3], [5,6], [6,7], [7,6], [8,3], [9,1]).map(
+                -> ($steps, $frequency) {
+                    my $n = $frequency * $universes;
+                    my @p = @pos;
+                    my @s = @score;
+                    @p[ $player ] += $steps;
+                    @s[ $player ] += (@p[ $player ] = (@p[ $player ] - 1) % 10 + 1);
 
-                        @p[ $player ] += $steps;
-                        @s[ $player ] += (@p[ $player ] = (@p[ $player ] - 1) % 10 + 1);
+                    @wins[$player] += $n if @s[ $player ] >= 21;
 
-                        [@s, @p, 1-$player, $universes * $frequency];
-                    }
-                )
-            );
+                    [@s, @p, 1-$player, $n] if @s[$player] < 21;
+                }
+            )
+        );
+        if $current-max < @wins.max {
+            $current-max = @wins.max;
+            print $current-max ~ "\r";
         }
     }
+
     say @wins.max;
 }
 
@@ -58,33 +59,32 @@ sub part2-recursively(@pos) {
     # 2,3,3	=> 8 => 3
     # 3,3,3	=> 9 => 1
 
-    my sub play (@score, @pos, $player) {
-        state %memo;
-        return %memo{ [|@score,|@pos,$player].join(",") } //= &{
-            if @score[0] >= 21 {
-                [1, 0];
-            } elsif @score[1] >= 21 {
-                [0, 1];
-            } else {
-                my @wins = [0,0];
-                for ([3,1], [4,3], [5,6], [6,7], [7,6], [8,3], [9,1]) -> ($steps, $unis) {
-                    my @p = @pos;
-                    my @s = @score;
-                    @p[ $player ] += $steps;
-                    @s[ $player ] += (@p[ $player ] = (@p[ $player ] - 1) % 10 + 1);
-                    @wins <<+=>> play(@s, @p, 1 - $player).map({ $_ * $unis });
-                }
-                @wins;
-            }
-        }();
+    my %memo;
+    my sub play ($s0, $s1, $p0, $p1, $player) {
+        return [1,0] if $s0 >= 21;
+        return [0,1] if $s1 >= 21;
+
+        my $k = [$s0, $s1, $p0, $p1, $player].join(",");
+        return %memo{$k} if %memo{$k}:exists;
+
+        my @wins := [0, 0];
+        for ([3,1],[4,3],[5,6],[6,7],[7,6],[8,3],[9,1]) -> ($steps, $frequency) {
+            my @s := [$s0, $s1];
+            my @p := [$p0, $p1];
+            @s[$player] += @p[$player] = (@p[$player] + $steps - 1) % 10 + 1;
+            @wins <<+=>> ($frequency X* play( |@s, |@p, 1 - $player ).values);
+        }
+
+        return %memo{$k} = @wins;
     }
 
-    my $res = play([0,0], @pos, 0);
+    my $res = play(0,0, @pos[0], @pos[1], 0);
+#    say %memo.raku;
     say $res;
     say $res.max();
 }
 
-sub part1(@player-pos) {
+sub part1(@player-pos is copy) {
     my $player = 0;
     my $dice = 0;
     my @player-score = [0, 0];
