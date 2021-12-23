@@ -80,7 +80,7 @@ sub part2-recursively(@pos) {
 
     my $res = play(0,0, @pos[0], @pos[1], 0);
 #    say %memo.raku;
-    say $res;
+#    say $res;
     say $res.max();
 }
 
