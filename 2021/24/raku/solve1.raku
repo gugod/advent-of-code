@@ -1,14 +1,10 @@
 
 sub MAIN(IO::Path() $input) {
     my @instructions := $input.lines.map({ [ .split(" ") ] }).Array;
-    part1(@instructions);
-}
 
-sub part1 (@instructions) {
     my &monad = build-model-number-automatic-detector-program(@instructions);
-    my $model-nums := (99999999999999, * - 1 ... 11111111111111).grep(! *.Str.match(/0/));
-    # my $model-nums := (11111111111111, * + 1 ... 99999999999999).grep(! *.Str.match(/0/));
-    say $model-nums.hyper.first({ monad($^n) });
+    say monad("51983999947999");
+    say monad("11211791111365");
 }
 
 sub build-model-number-automatic-detector-program (@instructions is copy) {
@@ -23,6 +19,10 @@ sub build-model-number-automatic-detector-program (@instructions is copy) {
 
             given $op {
                 when "inp" {
+                    last if @digits.elems == 0;
+
+                    # print $n,"\t",%vars.raku,"\n";
+
                     %vars{ $var } = @digits.shift;
                 }
                 when "add" {
@@ -38,11 +38,14 @@ sub build-model-number-automatic-detector-program (@instructions is copy) {
                     %vars{ $var } %= $val;
                 }
                 when "eql" {
+                    my $copy = %vars{ $var };
                     %vars{ $var } = (%vars{ $var } == $val) ?? 1 !! 0;
                 }
             }
         }
 
-        %vars<z>.Int == 0;
+        print $n,"\t",%vars.raku,"\n";
+        # return %vars{"w", "x", "y", "z"};
+        return %vars{"z"};
     };
 }
