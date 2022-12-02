@@ -2,6 +2,15 @@ use v5.36;
 use Data::Dumper;
 use List::Util qw(max sum);
 
+open my $fh, '<', "input.txt";
+
+my $calories = readElfCalories($fh);
+
+solvePart1($calories);
+solvePart2($calories);
+
+exit();
+
 sub readElfCalories ($fh) {
     local $/ = "\n\n";
     my @calories = map { [split /\n/] } <$fh>;
@@ -11,6 +20,12 @@ sub readElfCalories ($fh) {
 sub solvePart1 ($caloriesPerElf) {
     my $maxCalorie = max map { sum(@$_) } @$caloriesPerElf;
     say $maxCalorie;
+}
+
+sub solvePart2 ($caloriesPerElf) {
+    my @calories = map { sum(@$_) } @$caloriesPerElf;
+    my @top3 = quickSelectTopK( \@calories, 3 );
+    say sum(@top3);
 }
 
 sub quickSelectTopK( $nums, $k ) {
@@ -45,16 +60,3 @@ sub quickSelectTopK( $nums, $k ) {
     return @$nums[0..$k-1];
 }
 
-sub solvePart2 ($caloriesPerElf) {
-    my @calories = map { sum(@$_) } @$caloriesPerElf;
-    my @top3 = quickSelectTopK( \@calories, 3 );
-    say sum(@top3);
-}
-
-die "I need input" unless $ARGV[0];
-
-open my $fh, '<', $ARGV[0];
-my $calories = readElfCalories($fh);
-
-# solvePart1($calories);
-solvePart2($calories);
