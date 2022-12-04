@@ -1,10 +1,7 @@
 use v5.36;
+use List::Util qw(min max);
 open my $fh, "<", "input.txt";
-
 say 0+ grep {
-    my @bounds = $_ =~ m/([0-9]+)/g;
-    ($bounds[2] <= $bounds[0] <= $bounds[3])
-           || ($bounds[2] <= $bounds[1] <= $bounds[3])
-           || ($bounds[0] <= $bounds[2] <= $bounds[3] <= $bounds[1])
-           || ($bounds[2] <= $bounds[0] <= $bounds[1] <= $bounds[3])
+    my ($a,$b,$c,$d) = $_ =~ m/([0-9]+)/g;
+    max($a, $c) <= min($b, $d)
 } <$fh>;
