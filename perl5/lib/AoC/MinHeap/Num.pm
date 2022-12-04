@@ -13,12 +13,10 @@ package AoC::MinHeap::Num {
         delete $stash->[ $#$stash ];
 
         my $i = 0;
-        while (2*$i+2 <= $#$stash) {
+        while (2*$i+1 <= $#$stash) {
             my ($j1, $j2) = (2*$i+1, 2*$i+2);
-            my $j = $stash->[$j1] < $stash->[$j2] ? $j1 : $j2;
-
+            my $j = ($j2 <= $#$stash && ($stash->[$j2] < $stash->[$j1])) ? $j2 : $j1;
             last if $stash->[$i] < $stash->[$j];
-
             ($stash->[$j], $stash->[$i]) = ($stash->[$i], $stash->[$j]);
             $i = $j;
         }

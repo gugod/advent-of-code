@@ -3,23 +3,19 @@ use v5.36;
 package AoC::MinHeap {
     use Scalar::Util qw( looks_like_number );
 
-    sub new ($class, %args) {
-        die "size is required"
-            unless defined($args{size}) && looks_like_number($args{size}) && $args{size} > 0;
-
+    sub new ($class) {
         my $self = bless {
-            size => $args{size},
             __stash => [],
         }, $class;
 
         return $self;
     }
 
-    sub size ($self) { $self->{'size'} }
+    sub size ($self) { scalar @{ $self->{'__stash'} } }
     sub __stash ($self) { $self->{'__stash'} }
 
     sub min ($self) {
-        my $stash = $self->__stash;
+        my $stash = $self->{'__stash'};
         return undef if @$stash == 0;
         return $stash->[0];
     }
@@ -30,7 +26,7 @@ __END__
 
 =head1 Examples
 
-    my $heap = AoC::MeanHeap::Num->new( size => 10 );
+    my $heap = AoC::MeanHeap::Num->new();
 
     # Add new values
     $heap->put($n);
