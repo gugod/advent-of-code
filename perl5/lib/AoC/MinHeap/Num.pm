@@ -21,7 +21,7 @@ package AoC::MinHeap::Num {
         my $i = 0;
         while (2*$i+1 <= $#$stash) {
             for my $j (2*$i, 2*$i+1) {
-                if ($stash->[$i] > $stash->[$j]) {
+                if ($stash->[$j] < $stash->[$i]) {
                     ($stash->[$j], $stash->[$i]) = ($stash->[$i], $stash->[$j]);
                     $i = $j;
                     last;
