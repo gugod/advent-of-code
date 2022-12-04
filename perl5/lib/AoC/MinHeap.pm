@@ -17,6 +17,12 @@ package AoC::MinHeap {
 
     sub size ($self) { $self->{'size'} }
     sub __stash ($self) { $self->{'__stash'} }
+
+    sub min ($self) {
+        my $stash = $self->__stash;
+        return undef if @$stash == 0;
+        return $stash->[0];
+    }
 };
 
 1;

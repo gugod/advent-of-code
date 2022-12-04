@@ -4,12 +4,6 @@ package AoC::MinHeap::Str {
     use AoC::MinHeap;
     our @ISA = 'AoC::MinHeap';
 
-    sub min ($self) {
-        my $stash = $self->__stash;
-        return undef if @$stash == 0;
-        return $stash->[0];
-    }
-
     sub pop($self) {
         my $stash = $self->__stash;
         return undef if @$stash == 0;
