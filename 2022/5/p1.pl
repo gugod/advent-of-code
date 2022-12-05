@@ -1,5 +1,4 @@
 use v5.36;
-use Data::Dumper qw(Dumper);
 
 open my $fh, "input";
 
@@ -26,28 +25,16 @@ while (<$fh>) {
 }
 close($fh);
 
-# vis(\@stacks);
-
 for (@instructions) {
     my ($plates, $from, $to) = @$_;
     $from -= 1;
     $to -= 1;
-    # say "move: $plates $from $to";
 
     for (1..$plates) {
         my $p = pop(@{$stacks[$from]});
         last unless defined($p);
         push @{$stacks[$to]}, $p;
     }
-    # vis(\@stacks);
-    # say "----";
 }
 
-say join "", map { $_->[-1] // "[]" } @stacks;
-
-use JSON::PP qw(encode_json);
-sub vis ($stacks) {
-    for my $s (@$stacks) {
-        say "+ " . encode_json($s);
-    }
-}
+say join "", map { $_->[-1] } @stacks;
