@@ -1,29 +1,24 @@
 use v5.36;
 
 open my $fh, "input";
+my ($part1, $part2) = split "\n\n", do { local $/; <$fh> };
+close($fh);
 
 my @stacks;
-my @instructions;
 
-while (<$fh>) {
-    last if $_ eq "\n";
-    chomp;
+for my $line ( split("\n", $part1) ) {
+    last if $line eq "\n";
+    chomp($line);
 
-    my @plates = $_ =~ m/(...) ?/g;
-
-    for my $i (0..$#plates) {
-        my ($letter) = $plates[$i] =~ /([A-Z])/g;
-        next unless defined $letter;
-        push @{$stacks[$i] //=[]}, $letter;
+    my @letters = map { substr($line, $_, 1) }grep { $_ % 4 == 1 } (1...length($line));
+    for my $i (0..$#letters) {
+        next if $letters[$i] eq ' ';
+        push @{$stacks[$i] //=[]}, $letters[$i];
     }
 }
 @stacks = map { [reverse(@$_)] } @stacks;
 
-while (<$fh>) {
-    my ($a,$b,$c) = $_ =~ /(\d+)/g;
-    push @instructions, [$a,$b,$c];
-}
-close($fh);
+my @instructions = map { [ /(\d+)/g ] } split("\n", $part2);
 
 for (@instructions) {
     my ($plates, $from, $to) = @$_;
