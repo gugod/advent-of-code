@@ -1,6 +1,5 @@
 my $input = "input".IO.slurp;
-my @windows = $input.comb.rotor(4=>-3);
-my $o = @windows.pairs.first: {
+my $o = $input.comb.rotor(4 => -3).pairs.first: {
     .value.unique.elems == .value.elems
 };
 say $o.key + $o.value.elems;
