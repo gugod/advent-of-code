@@ -1,6 +1,5 @@
 use Test2::V0;
-
-use AoC::Util qw(count);
+use AoC;
 
 subtest "count", sub {
     subtest "predicate on a list", sub {

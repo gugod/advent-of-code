@@ -1,6 +1,5 @@
 use Test2::V0;
-use AoC::Util qw(rotor);
-use Data::Dumper qw(Dumper);
+use AoC;
 
 subtest "rotor", sub {
     subtest "chunk(2)", sub {
