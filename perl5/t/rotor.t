@@ -20,7 +20,7 @@ subtest "rotor", sub {
             [ 2,3,4 ],
             [ 3,4,5 ],
         ]
-    }
+    };
 };
 
 done_testing;
