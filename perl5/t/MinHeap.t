@@ -1,6 +1,29 @@
+use v5.36;
 use Test2::V0;
 use AoC::MinHeap::Str;
 use AoC::MinHeap::Num;
+
+sub minheap_sort ($class, $elems) {
+    my $heap = $class->new();
+    $heap->push(@$elems);
+    is $heap->size, scalar(@$elems);
+
+    my @out;
+    push(@out, $heap->pop()) while $heap->size() > 0;
+    return @out;
+}
+
+sub verify_minheap_str_can_sort ($elems) {
+    my @sorted_by_minheap = minheap_sort 'AoC::MinHeap::Str', $elems;
+    my @sorted = sort { $a cmp $b } @$elems;
+    is \@sorted_by_minheap, \@sorted;
+}
+
+sub verify_minheap_num_can_sort ($elems) {
+    my @sorted_by_minheap = minheap_sort 'AoC::MinHeap::Str', $elems;
+    my @sorted = sort { $a <=> $b } @$elems;
+    is \@sorted_by_minheap, \@sorted;
+}
 
 subtest 'AoC::MinHeap::Num', sub {
     subtest 'basics', sub {
@@ -20,19 +43,16 @@ subtest 'AoC::MinHeap::Num', sub {
     };
 
     for my $round (1..10) {
-        my @elems = map { int(rand(1000000)) } (1..10);
-        my @elems_sorted = sort { $a <=> $b } @elems;
-
+        my @elems = map { int(rand(1000000)) } (1 .. 10+rand(100));
         subtest "fuzz round $round -- input " . join(" ", @elems), sub {
-            my $heap = AoC::MinHeap::Num->new();
-            $heap->push(@elems);
-            is $heap->size, 0+@elems;
-
-            my @out;
-            push(@out, $heap->pop()) for (1..10);
-            is \@out, \@elems_sorted;
-        }
+            verify_minheap_num_can_sort \@elems;
+        };
     }
+
+    subtest "previously failed input", sub {
+        my @elems = qw(653483 176874 152061 891932 527644 49708 268794 391076 848369 192407);
+        verify_minheap_num_can_sort( \@elems );
+    };
 };
 
 subtest 'AoC::MinHeap::Str', sub {
@@ -54,17 +74,9 @@ subtest 'AoC::MinHeap::Str', sub {
 
     for my $round (1..10) {
         my @elems = map { chr(32 + rand 30000) } (1..10);
-        my @elems_sorted = sort { $a cmp $b } @elems;
-
         subtest "fuzz round $round -- input " . join(" ", @elems), sub {
-            my $heap = AoC::MinHeap::Str->new();
-            $heap->push(@elems);
-            is $heap->size, 0+@elems;
-
-            my @out;
-            push(@out, $heap->pop()) for (1..10);
-            is \@out, \@elems_sorted;
-        }
+            verify_minheap_str_can_sort \@elems;
+        };
     }
 };
 
