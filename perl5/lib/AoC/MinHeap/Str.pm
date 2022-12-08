@@ -29,11 +29,11 @@ package AoC::MinHeap::Str {
         for my $v (@vals) {
             CORE::push @$stash, $v;
             my $j = $#$stash;
-            my $i = int(($j - 1) / 2);
-            while ($j > 0 && ($stash->[$j] lt $stash->[$i])) {
+            while ($j > 0) {
+                my $i = int(($j - 1) / 2);
+                last if $stash->[$i] lt $stash->[$j];
                 ($stash->[$j], $stash->[$i]) = ($stash->[$i], $stash->[$j]);
                 $j = $i;
-                $i = int(($j - 1) / 2);
             }
         }
     }
