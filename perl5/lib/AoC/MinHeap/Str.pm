@@ -33,7 +33,7 @@ package AoC::MinHeap::Str {
             while ($j > 0 && ($stash->[$j] lt $stash->[$i])) {
                 ($stash->[$j], $stash->[$i]) = ($stash->[$i], $stash->[$j]);
                 $j = $i;
-                $i = int $j / 2;
+                $i = int(($j - 1) / 2);
             }
         }
     }
