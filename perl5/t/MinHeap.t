@@ -45,7 +45,7 @@ subtest 'AoC::MinHeap::Num', sub {
         is $heap->pop(), U();
     };
 
-    for my $round (1..1000) {
+    for my $round (1..100) {
         my @elems = map { int(rand(10000)) } (1 .. 10+rand(100));
         subtest "fuzz round $round -- input " . join(" ", @elems), sub {
             verify_minheap_num_can_sort \@elems;
@@ -70,17 +70,12 @@ subtest 'AoC::MinHeap::Str', sub {
         is $heap->pop(), undef;
     };
 
-    for my $round (1..1000) {
-        my @elems = map { chr(97 + rand 26) } (1..1000);
+    for my $round (1..100) {
+        my @elems = map { chr(97 + rand 26) } (1 .. (10+rand(100)));
         subtest "fuzz round $round -- input " . join(" ", @elems), sub {
             verify_minheap_str_can_sort \@elems;
         };
     }
-
-    subtest "previously failed input", sub {
-        my @elems = qw(e c b f d a);
-        verify_minheap_str_can_sort \@elems;
-    };
 };
 
 done_testing;
