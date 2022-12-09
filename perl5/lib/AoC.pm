@@ -11,7 +11,7 @@ package AoC {
     use File::Slurp ();
 
     use Exporter ();
-    our @EXPORT = qw( count rotor windowed chunked );
+    our @EXPORT = qw( count rotor windowed chunked chars );
 
     sub import {
         my $caller = shift;
@@ -63,6 +63,10 @@ package AoC {
 
     sub chunked ( $size, @xs ) {
         rotor $size => 0, @xs
+    }
+
+    sub chars ( $s ) {
+        wantarray ? split("", $s) : length($s);
     }
 };
 
