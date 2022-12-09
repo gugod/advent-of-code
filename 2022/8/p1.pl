@@ -1,6 +1,7 @@
 use v5.36;
 use File::Slurp qw(slurp);
-my $in = slurp("input");
+
+my $in = slurp(shift // "input");
 
 my @treescape = map { [ split "",  $_ ] } split "\n", $in;
 my %seen;
