@@ -5,8 +5,12 @@ use builtin ();
 use feature ':5.36';
 
 package AoC {
+    use List::Util ();
+    use List::MoreUtils ();
+    use List::UtilsBy ();
+
     use Exporter ();
-    our @EXPORT_OK = qw( count rotor windowed chunked );
+    our @EXPORT = qw( count rotor windowed chunked );
 
     sub import {
         my $caller = shift;
@@ -18,11 +22,17 @@ package AoC {
         warnings->unimport('experimental::builtin');
         builtin->import( grep { $_ ne 'import' && $_ ne 'VERSION' && $_ ne 'BEGIN' } keys %builtin:: );
 
+        # Hack: Tweak ExportLevel to make Exporter::import() inject
+        # those symbols, not into here, but into the caller package.
         do {
-            # Hack: Make Exporter::import() put the symbols, not in
-            # here, but in the caller package.
+            local $Exporter::ExportLevel = 2;
+            List::Util->import( @List::Util::EXPORT_OK );
+            List::MoreUtil->import( @List::MoreUtil::EXPORT_OK );
+            List::UtilsBy->import( @List::UtilsBy::EXPORT_OK );
+        };
+        do {
             local $Exporter::ExportLevel = 1;
-            Exporter::import(__PACKAGE__, @EXPORT_OK);
+            Exporter::import(__PACKAGE__, @EXPORT);
         };
     }
 
