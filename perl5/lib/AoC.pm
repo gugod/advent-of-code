@@ -4,7 +4,6 @@ use warnings;
 use builtin ();
 use feature ':5.36';
 
-
 package AoC {
     use Exporter ();
     our @EXPORT_OK = qw( count rotor windowed chunked );
@@ -20,7 +19,8 @@ package AoC {
         builtin->import( grep { $_ ne 'import' && $_ ne 'VERSION' && $_ ne 'BEGIN' } keys %builtin:: );
 
         do {
-            # Hack: Make Exporter::import() put the symbols in the right package.
+            # Hack: Make Exporter::import() put the symbols, not in
+            # here, but in the caller package.
             local $Exporter::ExportLevel = 1;
             Exporter::import(__PACKAGE__, @EXPORT_OK);
         };
