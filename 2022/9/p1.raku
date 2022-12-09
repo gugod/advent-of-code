@@ -6,7 +6,7 @@ my %V := {
 };
 
 sub move-knot (@rope, Int $i, $dir) {
-    @rope[$i] <<+=>> %V{$dir}
+    @rope[$i] >>+=<< %V{$dir}
 }
 
 sub move-head (@rope, $dir) {
@@ -14,7 +14,7 @@ sub move-head (@rope, $dir) {
 }
 
 sub move-tail (@rope) {
-    my ($delta-rows, $delta-cols) = @rope[0] <<->> @rope[1];
+    my ($delta-rows, $delta-cols) = @rope[0] >>-<< @rope[1];
 
     return if (abs($delta-cols), abs($delta-rows)).all() < 2;
 
