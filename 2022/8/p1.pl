@@ -24,7 +24,6 @@ for my $row (0..$rowEnd) {
         if ($treescape[$row][$col] > $height) {
             $seen{"$row $col"}++;
             $height = $treescape[$row][$col];
-            say "seen: $row $col";
         }
     }
 }
