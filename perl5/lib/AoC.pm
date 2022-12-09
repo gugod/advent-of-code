@@ -8,6 +8,7 @@ package AoC {
     use List::Util ();
     use List::MoreUtils ();
     use List::UtilsBy ();
+    use File::Slurp ();
 
     use Exporter ();
     our @EXPORT = qw( count rotor windowed chunked );
@@ -29,6 +30,7 @@ package AoC {
             List::Util->import( @List::Util::EXPORT_OK );
             List::MoreUtil->import( @List::MoreUtil::EXPORT_OK );
             List::UtilsBy->import( @List::UtilsBy::EXPORT_OK );
+            File::Slurp->import(qw(slurp));
         };
         do {
             local $Exporter::ExportLevel = 1;
