@@ -1,4 +1,6 @@
 use v5.36;
+use FindBin '$Bin';
+use lib $Bin . '/../../perl5/lib';
 use AoC;
 
 my @lines = slurp(shift // "input");
@@ -18,16 +20,12 @@ sub tailFollow () {
     return 0 if (abs($dr) <= 1 && abs($dc) <= 1);
 
     my @moves;
-    if ($dr == 0 || $dc == 0) {
-        push @moves, "L" if $dc < -1;
-        push @moves, "R" if $dc > 1;
-        push @moves, "U" if $dr < -1;
-        push @moves, "D" if $dr > 1;
-    } else {
+    if ($dr == 0 || $dc != 0) {
         push @moves, $dc < 0 ? "L" : "R";
+    }
+    if ($dc == 0 || $dr != 0) {
         push @moves, $dr < 0 ? "U" : "D";
     }
-
     for my $dir (@moves) {
         $T[0] += $V{$dir}[0];
         $T[1] += $V{$dir}[1];
