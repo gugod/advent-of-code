@@ -2,7 +2,7 @@ use v5.36;
 use File::Slurp qw(slurp);
 use List::Util qw(max);
 
-my $in = slurp("input");
+my $in = slurp(shift // "input");
 
 my @treescape = map { [ split "",  $_ ] } split "\n", $in;
 my %score;
