@@ -21,7 +21,16 @@ package AoC {
 
         # All new builtin functions
         warnings->unimport('experimental::builtin');
-        builtin->import( grep { $_ ne 'import' && $_ ne 'VERSION' && $_ ne 'BEGIN' } keys %builtin:: );
+        builtin->import(
+            qw(
+                  true false is_bool
+                  weaken unweaken is_weak
+                  blessed refaddr reftype
+                  created_as_string created_as_number
+                  ceil floor
+                  trim
+          )
+        );
 
         # Hack: Tweak ExportLevel to make Exporter::import() inject
         # those symbols, not into here, but into the caller package.
