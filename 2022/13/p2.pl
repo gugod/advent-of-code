@@ -11,17 +11,18 @@ sub main ( $input = "input" ) {
 
     my @delimitors = ([[2]], [[6]]);
     my @sortedPacketPairs = sort {
-        my $o = isOrdered($a, $b);
-        defined($o) ? $o ? -1 : 1 : 0
+        compare($a, $b);
     } (@packetPairs, @delimitors);
 
-    my $p = 1;
-    for my $i (0..$#sortedPacketPairs) {
-        my $packet = $sortedPacketPairs[$i];
-        $p *= ($i+1)
-            if refaddr($packet) == refaddr($delimitors[0])
-             || refaddr($packet) == refaddr($delimitors[1]);
-    }
+    my @delimitorRefAddr = map { refaddr($_) } @delimitors;
+
+    my $p = product
+        grep {
+            my $packet = $sortedPacketPairs[$_ - 1];
+            any { refaddr($packet) == $_ } @delimitorRefAddr
+        }
+        (1..@sortedPacketPairs);
+
     say $p;
 }
 main( @ARGV );
@@ -33,21 +34,22 @@ sub parsePacket ($s) {
 
 sub isArray ($o) { ref($o) eq 'ARRAY' }
 
-sub isOrdered ($left, $right) {
+# compare: -1: left is smaller, 0: equal, 1: left is larger
+sub compare ($left, $right) {
     $left = [$left] if !isArray($left);
     $right = [$right] if !isArray($right);
 
-    return undef if @$left == @$right == 0;
-    return true if @$left == 0 && 0 < @$right;
-    return false if @$left > @$right && @$right == 0;
+    return 0 if @$left == @$right == 0;
+    return -1 if @$left == 0 && 0 < @$right;
+    return 1 if @$left > @$right && @$right == 0;
 
     if ( !isArray($left->[0]) && !isArray($right->[0]) ) {
-        return true if $left->[0] < $right->[0];
-        return false if $left->[0] > $right->[0];
+        return -1 if $left->[0] < $right->[0];
+        return 1 if $left->[0] > $right->[0];
     } else {
-        my $o = isOrdered( $left->[0], $right->[0] );
-        return $o if defined $o;
+        my $o = compare( $left->[0], $right->[0] );
+        return $o if $o != 0;
     }
 
-    return isOrdered( [@{$left}[1..$#$left]], [@{$right}[1..$#$right]] );
+    return compare( [@{$left}[1..$#$left]], [@{$right}[1..$#$right]] );
 }
