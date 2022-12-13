@@ -34,13 +34,15 @@ sub isOrdered ($left, $right) {
     return true if @$left == 0 && 0 < @$right;
     return false if @$left > @$right && @$right == 0;
 
-    if ( !isArray($left->[0]) && !isArray($right->[0]) ) {
-        return true if $left->[0] < $right->[0];
-        return false if $left->[0] > $right->[0];
+    my $left0 = shift @$left;
+    my $right0 = shift @$right;
+    if ( !isArray($left0) && !isArray($right0) ) {
+        return true if $left0 < $right0;
+        return false if $left0 > $right0;
     } else {
-        my $o = isOrdered( $left->[0], $right->[0] );
+        my $o = isOrdered( $left0, $right0 );
         return $o if defined $o;
     }
 
-    return isOrdered( [@{$left}[1..$#$left]], [@{$right}[1..$#$right]] );
+    return isOrdered( $left, $right );
 }
