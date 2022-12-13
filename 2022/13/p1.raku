@@ -1,7 +1,6 @@
 sub MAIN($input = "input") {
     my @packet-pairs = $input.IO.slurp.split("\n\n").map({ parse-packet-pair($_) }).Array;
     my $answer = @packet-pairs.pairs.grep(&is-correct-order-kv).map({ .key + 1 });
-    # say $answer;
     say $answer.sum;
 }
 
@@ -30,18 +29,10 @@ sub is-correct-order( Array() $left, Array() $right ) {
     my $leftElem = $left[0];
     my $rightElem = $right[0];
 
-    my $o;
-
+    my $o = Nil;
     if ($leftElem.isa(Int) && $rightElem.isa(Int)) {
-        if $leftElem < $rightElem {
-            $o = True
-        }
-        elsif $leftElem > $rightElem {
-            $o = False
-        }
-        else {
-            $o = Nil
-        };
+        return True if $leftElem < $rightElem;
+        return False if $leftElem > $rightElem;
     } else {
         $o = is-correct-order($leftElem, $rightElem);
     }
