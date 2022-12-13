@@ -9,9 +9,10 @@ package AoC {
     use List::MoreUtils ();
     use List::UtilsBy ();
     use File::Slurp ();
+    use JSON::PP qw( encode_json );
 
     use Exporter ();
-    our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars );
+    our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars gist );
 
     sub import {
         my $caller = shift;
@@ -80,6 +81,10 @@ package AoC {
 
     sub parse_2d_map_of_chars ($s) {
         map { [split ""] } split "\n", $s
+    }
+
+    sub gist {
+        join " ", map { ref($_) ? encode_json($_) : defined($_) ? $_ : "(undef)" } @_
     }
 };
 
