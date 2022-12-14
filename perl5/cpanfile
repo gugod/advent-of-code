@@ -1,5 +1,3 @@
 requires 'Test2::V0';
-requires 'List::Util';
-requires 'List::MoreUtils';
-requires 'List::UtilsBy';
+requires 'List::AllUtils';
 requires 'File::Slurp';

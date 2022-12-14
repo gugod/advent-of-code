@@ -5,9 +5,7 @@ use builtin ();
 use feature ':5.36';
 
 package AoC {
-    use List::Util ();
-    use List::MoreUtils qw( minmax );
-    use List::UtilsBy ();
+    use List::AllUtils qw( minmax );
     use File::Slurp ();
     use JSON::PP qw( encode_json decode_json );
 
@@ -37,9 +35,7 @@ package AoC {
         # those symbols, not into here, but into the caller package.
         do {
             local $Exporter::ExportLevel = 2;
-            List::Util->import( @List::Util::EXPORT_OK );
-            List::MoreUtils->import( @List::MoreUtils::EXPORT_OK );
-            List::UtilsBy->import( @List::UtilsBy::EXPORT_OK );
+            List::AllUtils->import( @List::AllUtils::EXPORT_OK );
             File::Slurp->import(qw(slurp));
             JSON::PP->import(qw(encode_json decode_json));
         };
