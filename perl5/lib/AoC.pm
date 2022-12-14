@@ -38,7 +38,7 @@ package AoC {
         do {
             local $Exporter::ExportLevel = 2;
             List::Util->import( @List::Util::EXPORT_OK );
-            List::MoreUtil->import( @List::MoreUtil::EXPORT_OK );
+            List::MoreUtils->import( @List::MoreUtils::EXPORT_OK );
             List::UtilsBy->import( @List::UtilsBy::EXPORT_OK );
             File::Slurp->import(qw(slurp));
             JSON::PP->import(qw(encode_json decode_json));
