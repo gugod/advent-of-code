@@ -12,7 +12,7 @@ package AoC {
     use JSON::PP qw( encode_json );
 
     use Exporter ();
-    our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars gist comb minToMax );
+    our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars gist comb minToMax slip );
 
     sub import {
         my $caller = shift;
@@ -94,6 +94,12 @@ package AoC {
     sub minToMax {
         my ($min, $max) = minmax(@_);
         $min ... $max
+    }
+
+    sub slip ( $x ) {
+        return @$x if ref($x) eq 'ARRAY';
+        return %$x if ref($x) eq 'HASH';
+        return $x;
     }
 };
 
