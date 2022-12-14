@@ -12,7 +12,7 @@ package AoC {
     use JSON::PP qw( encode_json );
 
     use Exporter ();
-    our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars gist );
+    our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars gist comb );
 
     sub import {
         my $caller = shift;
@@ -85,6 +85,10 @@ package AoC {
 
     sub gist {
         join " ", map { ref($_) ? encode_json($_) : defined($_) ? $_ : "(undef)" } @_
+    }
+
+    sub comb ( $pattern, $s ) {
+        $s =~ m/($pattern)/g;
     }
 };
 
