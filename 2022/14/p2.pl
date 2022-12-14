@@ -41,23 +41,21 @@ sub buildTerrain ( $input ) {
 sub simInfSandDrop ( $S, $terrain = {} ) {
     my $sands = 1;
     while (true) {
-        my $restAt = simOneSandDrop( [@$S], $terrain );
-        last if same($S, $restAt);
+        my $restAt = simOneSandDrop( [@$S], $terrain ) or last;
         $sands++;
         mark( $terrain, $restAt, "S" );
     }
     say $sands;
 }
 
-sub same ($p1, $p2) {
-    $p1->[0] == $p2->[0] && $p1->[1] == $p2->[1];
-}
-
 sub simOneSandDrop ($S, $terrain) {
-    true while (
-        dropDown($S, $terrain) or dropDownLeft($S, $terrain) or dropDownRight($S, $terrain)
+    my $dropped = 0;
+    $dropped++ while (
+        dropDown($S, $terrain)
+        or dropDownLeft($S, $terrain)
+        or dropDownRight($S, $terrain)
     );
-    return $S;
+    return $dropped ? $S : undef;
 }
 
 sub mark ( $terrain, $p, $what = "R" ) {
