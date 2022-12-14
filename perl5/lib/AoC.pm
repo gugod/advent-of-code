@@ -9,7 +9,7 @@ package AoC {
     use List::MoreUtils qw( minmax );
     use List::UtilsBy ();
     use File::Slurp ();
-    use JSON::PP qw( encode_json );
+    use JSON::PP qw( encode_json decode_json );
 
     use Exporter ();
     our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars gist comb minToMax slip );
@@ -41,6 +41,7 @@ package AoC {
             List::MoreUtil->import( @List::MoreUtil::EXPORT_OK );
             List::UtilsBy->import( @List::UtilsBy::EXPORT_OK );
             File::Slurp->import(qw(slurp));
+            JSON::PP->import(qw(encode_json decode_json));
         };
         do {
             local $Exporter::ExportLevel = 1;
