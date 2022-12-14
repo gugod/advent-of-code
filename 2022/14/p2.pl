@@ -2,7 +2,6 @@ use v5.36;
 use FindBin '$Bin';
 use lib $Bin . '/../../perl5/lib';
 use AoC;
-use List::MoreUtils qw(minmax);
 
 use JSON::PP qw(decode_json);
 
@@ -25,13 +24,11 @@ sub buildTerrain ( $input ) {
             my ($begin, $end) = @$_;
 
             if ($begin->[0] == $end->[0]) {
-                my ($b,$e) = minmax( $begin->[1], $end->[1] );
-                for ($b..$e) {
+                for (minToMax( $begin->[1], $end->[1] )) {
                     mark( $terrain, [ $begin->[0], $_ ] );
                 }
             } else {
-                my ($b,$e) = minmax( $begin->[0], $end->[0] );
-                for ($b..$e) {
+                for (minToMax( $begin->[0], $end->[0] )) {
                     mark( $terrain, [ $_, $begin->[1] ] );
                 }
             }

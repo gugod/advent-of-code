@@ -22,15 +22,12 @@ sub buildTerrain ( $input ) {
     for my $line (@$input) {
         for (rotor 2 => -1, rotor 2 => 0, comb qr/[0-9]+/, $line) {
             my ($begin, $end) = @$_;
-
             if ($begin->[0] == $end->[0]) {
-                my ($b,$e) = minmax( $begin->[1], $end->[1] );
-                for ($b..$e) {
+                for (minToMax( $begin->[1], $end->[1] )) {
                     mark( $terrain, [ $begin->[0], $_ ] );
                 }
             } else {
-                my ($b,$e) = minmax( $begin->[0], $end->[0] );
-                for ($b..$e) {
+                for (minToMax( $begin->[0], $end->[0] )) {
                     mark( $terrain, [ $_, $begin->[1] ] );
                 }
             }
