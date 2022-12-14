@@ -72,15 +72,15 @@ sub isDownRightBlocked ($S, $terrain) { isMarked($terrain, downRightOf($S))}
 
 sub dropDown( $S, $terrain ) {
     return undef if isDownBlocked($S, $terrain);
-    @$S = @{ downOf($S) };
+    @$S = slip downOf($S);
 }
 
 sub dropDownRight( $S, $terrain ) {
     return undef if isDownRightBlocked( $S, $terrain );
-    @$S = @{ downRightOf($S) };
+    @$S = slip downRightOf($S);
 }
 
 sub dropDownLeft( $S, $terrain ) {
     return undef if isDownLeftBlocked($S, $terrain);
-    @$S = @{ downLeftOf($S) };
+    @$S = slip downLeftOf($S);
 }

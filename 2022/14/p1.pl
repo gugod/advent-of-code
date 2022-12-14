@@ -2,9 +2,6 @@ use v5.36;
 use FindBin '$Bin';
 use lib $Bin . '/../../perl5/lib';
 use AoC;
-use List::MoreUtils qw(minmax);
-
-use JSON::PP qw(decode_json);
 
 sub main ( $input = "input" ) {
     my @input = slurp($input);
