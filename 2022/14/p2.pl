@@ -21,8 +21,7 @@ sub buildTerrain ( $input ) {
         "blockers" => {},
     };
     for my $line (@$input) {
-        my @segments = rotor 2, -1, map {[split /,/, $_]} split / -> /, $line;
-        for (@segments) {
+        for (rotor 2 => -1, rotor 2 => 0, comb qr/[0-9]+/, $line) {
             my ($begin, $end) = @$_;
 
             if ($begin->[0] == $end->[0]) {
