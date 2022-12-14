@@ -7,7 +7,7 @@ use List::MoreUtils qw(minmax);
 use JSON::PP qw(decode_json);
 
 sub main ( $input = "input" ) {
-    my @input = split /\n/, slurp($input);
+    my @input = slurp($input);
     my $terrain = buildTerrain(\@input);
     simInfSandDrop([500,0], $terrain);
 }
