@@ -6,13 +6,13 @@ use feature ':5.36';
 
 package AoC {
     use List::Util ();
-    use List::MoreUtils ();
+    use List::MoreUtils qw( minmax );
     use List::UtilsBy ();
     use File::Slurp ();
     use JSON::PP qw( encode_json );
 
     use Exporter ();
-    our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars gist comb );
+    our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars gist comb minToMax );
 
     sub import {
         my $caller = shift;
@@ -89,6 +89,11 @@ package AoC {
 
     sub comb ( $pattern, $s ) {
         $s =~ m/($pattern)/g;
+    }
+
+    sub minToMax {
+        my ($min, $max) = minmax(@_);
+        $min ... $max
     }
 };
 
