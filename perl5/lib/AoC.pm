@@ -93,7 +93,7 @@ package AoC {
         $min ... $max
     }
 
-    sub slip ( $x ) {
+    sub slip :prototype($) ( $x ) {
         return @$x if ref($x) eq 'ARRAY';
         return %$x if ref($x) eq 'HASH';
         return $x;
