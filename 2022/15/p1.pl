@@ -9,26 +9,44 @@ sub main ( $input = "input", $y = 2000000 ) {
 
     my $iot = buildIot( \@sensorData );
 
-    my $count = 0;
     my ($xMin, $xMax) = xMinMax($iot);
-    my $x = $xMin;
-    while ($x <= $xMax) {
-        my $p = [$x, $y];
-        if (my $sensor = anySensorNearby($iot, $p)) {
-            my $xEnd = xRightEndOfSensorRange($iot, $sensor, $p);
-            $count += $xEnd - $x + 1;
-            $x = $xEnd + 1;
-        } else {
-            $x++;
-        }
-    }
-    $count -= countOfSensorOrBeaconAtY($iot, $y);
+    my $coverage = computeCoverageAtY($iot, $y);
+
+    # Reduce the coverage ranges to be within sensor+beacon locations
+    @$coverage = map { [ max($xMin, $_->[0]), min($xMax, $_->[1]) ] } @$coverage;
+
+    my $count = sum(map { $_->[1] - $_->[0] + 1 } @$coverage)
+        - countOfSensorOrBeaconAtY($iot, $y);
 
     say $count;
 }
 
 main(@ARGV);
 exit();
+
+sub computeCoverageAtY ($iot, $y) {
+    my @sensorCoverages = sort { $a->[0] <=> $b->[0] } map {
+        my $sensor = $_;
+        my ($Sx, $Sy, $r) = (slip $sensor->[0], $sensor->[1]);
+        my $dy = abs($Sy - $y);
+        my $dx = ($r - $dy);
+        ($dx >= 0) ? (
+            [ $Sx - $dx, $Sx + $dx ]
+        ) : ()
+    } ( values %{$iot->{"sensorAt"}} );
+
+    my @yCoverage = ([slip $sensorCoverages[0]]);
+    my $i = 0;
+    for my $j (1..$#sensorCoverages) {
+        if ( $sensorCoverages[$j][0] <= $yCoverage[$i][1] ) {
+            $yCoverage[$i][1] = max($yCoverage[$i][1], $sensorCoverages[$j][1]);
+        } else {
+            push @yCoverage, [ slip $sensorCoverages[$j] ];
+            $i++;
+        }
+    }
+    return \@yCoverage;
+}
 
 sub countOfSensorOrBeaconAtY ($iot, $y) {
     my $count = 0;
@@ -41,30 +59,6 @@ sub countOfSensorOrBeaconAtY ($iot, $y) {
         $count++ if $y == $_y;
     }
     return $count;
-}
-
-sub xRightEndOfSensorRange ($iot, $sensor, $p) {
-    my ($sensorAt, $Sd) = @$sensor;
-    my ($Sx, $Sy) = @$sensorAt;
-    return $Sx + $Sd - abs($Sy - $p->[1]);
-}
-
-sub isSensorAt ($iot, $p) {
-    $iot->{"sensorAt"}{"@$p"}
-}
-
-sub isBeaconAt ($iot, $p) {
-    $iot->{"beaconAt"}{"@$p"}
-}
-
-sub anySensorNearby ($iot, $p) {
-    for my $sensor (slip $iot->{"sensors"}) {
-        my ($sensorAt, $distance) = @$sensor;
-        if (manhattanDistance($p, $sensorAt) <= $distance) {
-            return $sensor;
-        }
-    }
-    return undef;
 }
 
 use constant Inf => 2**63;
@@ -81,13 +75,13 @@ sub buildIot ( $sensorData ) {
 
     for ( @$sensorData ) {
         my ($sensorAt, $beaconAt ) = @$_;
-        my $d = manhattanDistance( $sensorAt, $beaconAt );
-        my $sensor = [ $sensorAt, $d ];
+        my $r = manhattanDistance( $sensorAt, $beaconAt );
+        my $sensor = [ $sensorAt, $r ];
         push @{$iot{"sensors"}}, $sensor;
         $iot{"sensorAt"}{"@$sensorAt"} = $sensor;
         $iot{"beaconAt"}{"@$beaconAt"} = true;
-        $iot{"xMax"} = max $iot{"xMax"}, $sensorAt->[0], $beaconAt->[0], $sensorAt->[0] + $d;
-        $iot{"xMin"} = min $iot{"xMin"}, $sensorAt->[0], $beaconAt->[0], $sensorAt->[0] - $d;
+        $iot{"xMax"} = max $iot{"xMax"}, $sensorAt->[0], $beaconAt->[0], $sensorAt->[0] + $r;
+        $iot{"xMin"} = min $iot{"xMin"}, $sensorAt->[0], $beaconAt->[0], $sensorAt->[0] - $r;
     }
 
     return \%iot;

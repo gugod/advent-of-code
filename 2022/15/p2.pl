@@ -11,54 +11,44 @@ sub main ( $input = "input", $bound = 4000000 ) {
 
     my $missingBeaconAt;
     for my $y (0..$bound) {
-        last if $missingBeaconAt;
-        my $x = 0;
-        while ($x <= $bound) {
-            my $p = [$x, $y];
-            if (my $sensor = anySensorNearby($iot, $p)) {
-                my $xEnd = xRightEndOfSensorRange($iot, $sensor, $p);
-                $x = $xEnd + 1;
-            } else {
-                $missingBeaconAt = [$x,$y];
-                last;
-                $x++;
-            }
+        my $coverage = computeCoverageAtY($iot, $y);
+        @$coverage = map { [ max(0, $_->[0]), min($bound, $_->[1]) ] }
+            grep { $_->[0] <= $bound || $_->[1] >= 0 }
+            @$coverage;
+        # It is specified in the question that there would be only one spot.
+        if (@$coverage > 1) {
+            $missingBeaconAt = [$coverage->[0][1]+1, $y];
+            last;
         }
     }
-
     say 4000000 * $missingBeaconAt->[0] + $missingBeaconAt->[1];
 }
 
 main(@ARGV);
 exit();
 
-sub countOfSensorOrBeaconAtY ($iot, $y) {
-    my $count = 0;
-    for ( keys %{$iot->{"sensorAt"}} ) {
-        my (undef, $_y) = split(" ", $_);
-        $count++ if $y == $_y;
-    }
-    for ( keys %{$iot->{"beaconAt"}} ) {
-        my (undef, $_y) = split(" ", $_);
-        $count++ if $y == $_y;
-    }
-    return $count;
-}
+sub computeCoverageAtY ($iot, $y) {
+    my @sensorCoverages = sort { $a->[0] <=> $b->[0] } map {
+        my $sensor = $_;
+        my ($Sx, $Sy, $r) = (slip $sensor->[0], $sensor->[1]);
+        my $dy = abs($Sy - $y);
+        my $dx = ($r - $dy);
+        ($dx >= 0) ? (
+            [ $Sx - $dx, $Sx + $dx ]
+        ) : ()
+    } ( values %{$iot->{"sensorAt"}} );
 
-sub xRightEndOfSensorRange ($iot, $sensor, $p) {
-    my ($sensorAt, $Sd) = @$sensor;
-    my ($Sx, $Sy) = @$sensorAt;
-    return $Sx + $Sd - abs($Sy - $p->[1]);
-}
-
-sub anySensorNearby ($iot, $p) {
-    for my $sensor (slip $iot->{"sensors"}) {
-        my ($sensorAt, $distance) = @$sensor;
-        if (manhattanDistance($p, $sensorAt) <= $distance) {
-            return $sensor;
+    my @yCoverage = ([slip $sensorCoverages[0]]);
+    my $i = 0;
+    for my $j (1..$#sensorCoverages) {
+        if ( $sensorCoverages[$j][0] <= $yCoverage[$i][1] ) {
+            $yCoverage[$i][1] = max($yCoverage[$i][1], $sensorCoverages[$j][1]);
+        } else {
+            push @yCoverage, [ slip $sensorCoverages[$j] ];
+            $i++;
         }
     }
-    return undef;
+    return \@yCoverage;
 }
 
 use constant Inf => 2**63;
