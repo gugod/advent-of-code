@@ -10,7 +10,9 @@ package AoC {
     use JSON::PP qw( encode_json decode_json );
 
     use Exporter ();
-    our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars gist comb minToMax slip );
+    our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars gist comb minToMax slip VeryLargeNum );
+
+    use constant VeryLargeNum => 2**62;
 
     sub import {
         my $caller = shift;
