@@ -1,5 +1,7 @@
 use v5.36;
 use Test2::V0;
+use JSON::PP qw(encode_json);
+use AoC::MinHeap;
 use AoC::MinHeap::Str;
 use AoC::MinHeap::Num;
 
@@ -11,6 +13,15 @@ sub minheap_sort ($class, $elems) {
     my @out;
     push(@out, $heap->pop()) while $heap->size() > 0;
     return @out;
+}
+
+sub verify_minheap_can_sort ($heap, $elems, $elems_sorted) {
+    $heap->push(@$elems);
+    is $heap->size, scalar(@$elems);
+
+    my @out;
+    push(@out, $heap->pop()) while $heap->size() > 0;
+    is \@out, $elems_sorted;
 }
 
 sub verify_minheap_str_can_sort ($elems) {
@@ -74,6 +85,21 @@ subtest 'AoC::MinHeap::Str', sub {
         my @elems = map { chr(97 + rand 26) } (1 .. (10+rand(100)));
         subtest "fuzz round $round -- input " . join(" ", @elems), sub {
             verify_minheap_str_can_sort \@elems;
+        };
+    }
+};
+
+subtest 'AoC::MinHeap', sub {
+    for my $round (1..100) {
+        my @elems = map { [ chr(97 + rand 26) ] } (1 .. (10+rand(100)));
+        my @elems_sorted = sort { $a->[0] cmp $b->[0] } @elems;
+        subtest "fuzz round $round -- input " . encode_json(\@elems), sub {
+            my $heap = AoC::MinHeap->new(
+                "compare" => sub ($a, $b) {
+                    $a->[0] cmp $b->[0]
+                }
+            );
+            verify_minheap_can_sort $heap, \@elems, \@elems_sorted;
         };
     }
 };
