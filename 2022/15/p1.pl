@@ -61,13 +61,11 @@ sub countOfSensorOrBeaconAtY ($iot, $y) {
     return $count;
 }
 
-use constant Inf => 2**63;
-
 sub buildIot ( $sensorData ) {
     my %iot = (
         "sensorData" => $sensorData,
-        "xMin" => Inf,
-        "xMax" => - Inf,
+        "xMin" => VeryLargeNum,
+        "xMax" => - VeryLargeNum,
         "sensors" => [],
         "beaconAt" => {},
         "sensorAt" => {},

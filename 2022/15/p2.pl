@@ -51,13 +51,11 @@ sub computeCoverageAtY ($iot, $y) {
     return \@yCoverage;
 }
 
-use constant Inf => 2**63;
-
 sub buildIot ( $sensorData ) {
     my %iot = (
         "sensorData" => $sensorData,
-        "xMin" => Inf,
-        "xMax" => - Inf,
+        "xMin" => VeryLargeNum,
+        "xMax" => - VeryLargeNum,
         "sensors" => [],
         "beaconAt" => {},
         "sensorAt" => {},
