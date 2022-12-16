@@ -12,9 +12,7 @@ sub main ( $input = "input", $bound = 4000000 ) {
     my $missingBeaconAt;
     for my $y (0..$bound) {
         my $coverage = computeCoverageAtY($iot, $y);
-        @$coverage = map { [ max(0, $_->[0]), min($bound, $_->[1]) ] }
-            grep { $_->[0] <= $bound || $_->[1] >= 0 }
-            @$coverage;
+        @$coverage = grep { $_->[0] <= $bound || $_->[1] >= 0 } @$coverage;
         # It is specified in the question that there would be only one spot.
         if (@$coverage > 1) {
             $missingBeaconAt = [$coverage->[0][1]+1, $y];
@@ -30,22 +28,25 @@ exit();
 sub computeCoverageAtY ($iot, $y) {
     my @sensorCoverages = sort { $a->[0] <=> $b->[0] } map {
         my $sensor = $_;
-        my ($Sx, $Sy, $r) = (slip $sensor->[0], $sensor->[1]);
+        my ($Sx, $Sy, $r) = ($sensor->[0][0], $sensor->[0][1], $sensor->[1]);
         my $dy = abs($Sy - $y);
         my $dx = ($r - $dy);
         ($dx >= 0) ? (
             [ $Sx - $dx, $Sx + $dx ]
         ) : ()
-    } ( values %{$iot->{"sensorAt"}} );
+    } @{$iot->{"sensors"}};
 
-    my @yCoverage = ([slip $sensorCoverages[0]]);
+    my @yCoverage = ([@{$sensorCoverages[0]}]);
+    my $yCov = $yCoverage[0];
+
     my $i = 0;
     for my $j (1..$#sensorCoverages) {
-        if ( $sensorCoverages[$j][0] <= $yCoverage[$i][1] ) {
-            $yCoverage[$i][1] = max($yCoverage[$i][1], $sensorCoverages[$j][1]);
+        my $sensorCov = $sensorCoverages[$j];
+        if ( $sensorCov->[0] <= $yCov->[1] ) {
+            $yCov->[1] = $sensorCov->[1]
+                if $yCov->[1] < $sensorCov->[1];
         } else {
-            push @yCoverage, [ slip $sensorCoverages[$j] ];
-            $i++;
+            push @yCoverage, $yCov = [$sensorCov->[0], $sensorCov->[1]];
         }
     }
     return \@yCoverage;
