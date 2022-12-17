@@ -10,16 +10,20 @@ sub main ( $input = "input" ) {
     my $rate = $vg->{"rate"};
     my $max = 0;
     # [current valve, minutes left, eventual-releases, opened valves, count of open valvels]
-    my $opened = { map { $_ => 0 } @{$vg->{"nodes"}} };
-    my $openableValves =  grep { $rate->{$_} > 0 } @{$vg->{"nodes"}};
-    my @Q = (["AA", '', 30, 0, $opened, $openableValves]);
+
+    my @openableValves =  grep { $rate->{$_} > 0 } @{$vg->{"nodes"}};
+    my $opened = { map { $_ => 0 } @openableValves };
+    my @Q = (["AA", '', 30, 0, $opened, 0+@openableValves]);
 
     while (@Q) {
         my $now = pop @Q;
         my ($valve, $prevValve, $minutesLeft, $eventualReleases, $openedValves, $openableValves) = @$now;
 
         if ($minutesLeft <= 0) {
-            $max = $eventualReleases if $eventualReleases > $max;
+            if ($eventualReleases > $max) {
+                $max = $eventualReleases;
+                say gist $max, $minutesLeft, [map {@$_} rev_nsort_by { $_->[1] } grep { $_->[1] > 0 } pairs %$openedValves];
+            }
             next;
         }
 
@@ -36,11 +40,11 @@ sub main ( $input = "input" ) {
 
         my $rate = $vg->{"rate"}{$valve};
 
-        if ($rate > 0 && ! $openedValves->{$valve}) {
+        if ($rate > 0 && $openedValves->{$valve} == 0) {
             push @Q, [
                 $valve, $prevValve, $minutesLeft - 1,
                 $eventualReleases + $rate * ($minutesLeft - 1),
-                { %$openedValves, $valve => 1 },
+                { %$openedValves, $valve => $minutesLeft },
                 $openableValves - 1
             ];
         }
