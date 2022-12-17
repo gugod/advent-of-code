@@ -10,7 +10,11 @@ package AoC {
     use JSON::PP qw( encode_json decode_json );
 
     use Exporter ();
-    our @EXPORT = qw( count rotor windowed chunked chars parse_2d_map_of_chars gist comb minToMax slip VeryLargeNum );
+    our @EXPORT = qw<
+        count rotor windowed chunked chars parse_2d_map_of_chars
+        gist comb minToMax slip VeryLargeNum ArrayRef
+        hashkeys
+    >;
 
     use constant VeryLargeNum => 2**62;
 
@@ -45,6 +49,10 @@ package AoC {
             local $Exporter::ExportLevel = 1;
             Exporter::import(__PACKAGE__, @EXPORT);
         };
+    }
+
+    sub ArrayRef (@things) {
+        \@things
     }
 
     sub count :prototype(&@) {
@@ -100,6 +108,8 @@ package AoC {
         return %$x if ref($x) eq 'HASH';
         return $x;
     }
+
+    sub hashkeys ( $h ) { keys %$h }
 };
 
 1;
