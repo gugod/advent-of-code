@@ -4,49 +4,64 @@ use lib $Bin . '/../../perl5/lib';
 use AoC;
 
 sub main ( $input = "input" ) {
-    my $vg = buildValveGraph( $input );
+    my $G = buildValveGraph( $input );
 
     my $i = 0;
-    my $rate = $vg->{"rate"};
     my $max = 0;
-    # [current valve, minutes left, eventual-releases, opened valves, count of open valvels]
-    my $opened = { map { $_ => 0 } @{$vg->{"nodes"}} };
-    my $openableValves =  grep { $rate->{$_} > 0 } @{$vg->{"nodes"}};
-    my @Q = (["AA", '', 30, 0, $opened, $openableValves]);
 
+    my @openableValves =  grep { $G->{"rate"}{$_} > 0 } @{$G->{"nodes"}};
+    my $opened = { map { $_ => 0 } @openableValves };
+    my @Q = (["AA", 30, 0, $opened, 0+@openableValves]);
+
+    my %visited;
     while (@Q) {
         my $now = pop @Q;
-        my ($valve, $prevValve, $minutesLeft, $eventualReleases, $openedValves, $openableValves) = @$now;
+        my ($valve, $minutesLeft, $eventualReleases, $opened, $openableValves) = @$now;
+
+        my $k = "$valve $minutesLeft $eventualReleases $openableValves";
+        next if $visited{$k};
+        $visited{$k} = true;
+
+        if ($eventualReleases > $max) {
+            $max = $eventualReleases;
+            say gist $max, $minutesLeft, [ map { @$_} rev_nsort_by { $_->[1] } grep { $_->[1] > 0 } pairs %$opened];
+        }
 
         if ($minutesLeft <= 0) {
-            $max = $eventualReleases if $eventualReleases > $max;
             next;
         }
 
         if ($openableValves == 0) {
-            push @Q, [$valve, $prevValve, 0, $eventualReleases, $openedValves, $openableValves];
+            push @Q, [$valve, 0, $eventualReleases, $opened, $openableValves];
             next;
         }
 
-        my @nextValves = (slip $vg->{"connection"}{$valve});
+        my $rate = $G->{"rate"}{$valve};
 
-        if (@nextValves > 1) {
-            @nextValves = grep { $prevValve ne $_ } @nextValves;
-        }
-
-        my $rate = $vg->{"rate"}{$valve};
-
-        if ($rate > 0 && ! $openedValves->{$valve}) {
+        if ($rate > 0 && $opened->{$valve} == 0) {
             push @Q, [
-                $valve, $prevValve, $minutesLeft - 1,
+                $valve,
+                $minutesLeft - 1,
                 $eventualReleases + $rate * ($minutesLeft - 1),
-                { %$openedValves, $valve => 1 },
+                { %$opened, $valve => $minutesLeft },
                 $openableValves - 1
             ];
         }
-
-        for my $v (@nextValves) {
-            push @Q, [ $v, $valve, $minutesLeft - 1, $eventualReleases, $openedValves, $openableValves ];
+        my @next = nextValvesToVisit( $G, $valve, $minutesLeft, $opened );
+        # if (@next) {
+        #     say gist $valve, [map { $_ => $G->{"rate"}{$_} } @next], $opened;
+        # }
+        for my $v (@next) {
+            my $d = shortestDistance( $G, $valve, $v );
+            if ($minutesLeft >= $d) {
+                push @Q, [
+                    $v,
+                    $minutesLeft - $d,
+                    $eventualReleases,
+                    $opened,
+                    $openableValves
+                ];
+            }
         }
     }
 
@@ -70,5 +85,65 @@ sub buildValveGraph ( $input ) {
         $G->{"connection"}{$src} = \@dest;
     }
 
+    $G->{"allPairShortestPath"} = buildAllPairShortestPath(
+        $G->{"nodes"},
+        sub ($v) {
+            $G->{"connection"}{$v}
+        },
+        sub ($u,$v) { 1 }
+    );
+
     return $G;
+}
+
+sub buildAllPairShortestPath (
+    $vertices = [],
+    $neighbours = sub ($v) { ...; [] },
+    $weight = sub($u,$v) { ... },
+) {
+    my $D = {};
+
+    for my $i (@$vertices) {
+        for my $j (@$vertices) {
+            $D->{$i}{$j} = VeryLargeNum;
+        }
+    }
+
+    for my $i (@$vertices) {
+        $D->{$i}{$i} = 0;
+        for my $j ( slip $neighbours->($i) ) {
+            $D->{$i}{$j} = $weight->($i, $j);
+        }
+    }
+
+    for my $k (@$vertices) {
+        for my $i (@$vertices) {
+            for my $j (@$vertices) {
+                $D->{$i}{$j} = min $D->{$i}{$j}, $D->{$i}{$k} + $D->{$k}{$j};
+            }
+        }
+    }
+
+    return $D;
+}
+
+sub shortestDistance ( $G, $v1, $v2 ) {
+    $G->{"allPairShortestPath"}{$v1}{$v2}
+}
+
+sub nextValvesToVisit ( $G, $currentValve, $minutesLeft, $opened ) {
+    return map {
+        $_->[0]
+    } rev_nsort_by {
+        $_->[2]
+    } grep {
+        $_->[2] > 0
+    } map {[
+        @$_,
+        $G->{"rate"}{$_->[0]} * ($minutesLeft - shortestDistance($G, $currentValve, $_->[0]) - 1)
+    ]} grep {
+        ($_->[0] ne $currentValve)
+            && ($G->{"rate"}{$_->[0]} > 0)
+            && ($opened->{ $_->[0] } == 0)
+    } pairs %{ $G->{"allPairShortestPath"}{$currentValve} };
 }
