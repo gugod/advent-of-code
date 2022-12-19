@@ -2,3 +2,4 @@ requires 'App::Yath';
 requires 'Test2::V0';
 requires 'List::AllUtils';
 requires 'File::Slurp';
+requires 'Math::Vector::Real';
