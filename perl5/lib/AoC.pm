@@ -7,13 +7,14 @@ use feature ':5.36';
 package AoC {
     use List::AllUtils qw( minmax );
     use File::Slurp ();
-    use JSON::PP qw( encode_json decode_json );
+    use JSON::PP qw( decode_json );
 
     use Exporter ();
     our @EXPORT = qw<
         count rotor windowed chunked chars parse_2d_map_of_chars
         gist comb minToMax slip VeryLargeNum ArrayRef
         hashkeys arrayindices
+        encode_json
     >;
 
     use constant VeryLargeNum => 2**62;
@@ -43,7 +44,7 @@ package AoC {
             local $Exporter::ExportLevel = 2;
             List::AllUtils->import( @List::AllUtils::EXPORT_OK );
             File::Slurp->import(qw(slurp));
-            JSON::PP->import(qw(encode_json decode_json));
+            JSON::PP->import(qw(decode_json));
         };
         do {
             local $Exporter::ExportLevel = 1;
@@ -88,6 +89,10 @@ package AoC {
 
     sub parse_2d_map_of_chars ($s) {
         map { [split ""] } split "\n", $s
+    }
+
+    sub encode_json($o) {
+        JSON::PP->new->canonical->encode($o)
     }
 
     sub gist {
