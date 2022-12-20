@@ -13,7 +13,7 @@ package AoC {
     our @EXPORT = qw<
         count rotor windowed chunked chars parse_2d_map_of_chars
         gist comb minToMax slip VeryLargeNum ArrayRef
-        hashkeys arrayindices
+        hashkeys arrayindices elems
         encode_json
     >;
 
@@ -116,6 +116,7 @@ package AoC {
 
     sub hashkeys ( $h ) { keys %$h }
     sub arrayindices ( $a ) { 0..$#$a }
+    sub elems ( $a ) { 0 + @$a }
 };
 
 1;
