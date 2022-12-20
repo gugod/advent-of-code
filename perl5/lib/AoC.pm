@@ -1,13 +1,16 @@
 use v5.36;
 use strict;
 use warnings;
-use builtin ();
 use feature ':5.36';
 
 package AoC {
     use List::AllUtils qw( minmax );
     use File::Slurp ();
+    use Quantum::Superpositions ();
     use JSON::PP qw( decode_json );
+
+    no warnings 'experimental::builtin';
+    use builtin qw( blessed );
 
     use Exporter ();
     our @EXPORT = qw<
@@ -42,7 +45,8 @@ package AoC {
         # those symbols, not into here, but into the caller package.
         do {
             local $Exporter::ExportLevel = 2;
-            List::AllUtils->import( @List::AllUtils::EXPORT_OK );
+            List::AllUtils->import( grep { $_ ne 'all' && $_ ne 'any' } @List::AllUtils::EXPORT_OK );
+            Quantum::Superpositions->import(qw<any all>);
             File::Slurp->import(qw(slurp));
             JSON::PP->import(qw(decode_json));
         };
@@ -96,7 +100,9 @@ package AoC {
     }
 
     sub gist {
-        join " ", map { ref($_) ? encode_json($_) : defined($_) ? $_ : "(undef)" } @_
+        join " ", map {
+            ref($_) ? ( (blessed($_) && $_->can("GIST")) ? $_->GIST() : encode_json($_)) : defined($_) ? $_ : "(undef)"
+        } @_
     }
 
     sub comb ( $pattern, $s ) {
