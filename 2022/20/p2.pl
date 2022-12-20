@@ -4,7 +4,7 @@ use lib $Bin . '/../../perl5/lib';
 use AoC;
 
 sub main ( $input = "input") {
-    my @nums = mix(map { chomp; $_ + 0 } slurp($input));
+    my @nums = mix(map { $_ * 811589153 } slurp($input));
     my $i0 = first { $nums[$_] == 0 } (0..$#nums);
     say sum(
         @nums[ ($i0 + 1000) % @nums ],
@@ -18,9 +18,11 @@ exit();
 
 sub mix (@nums) {
     my @indices = 0..$#nums;
-    for my $i0 (0..$#nums) {
-        my $i = first { $indices[$_] == $i0 } 0..$#indices;
-        move(\@indices, $i, $nums[$i0]);
+    for (1..10) {
+        for my $i0 (0..$#nums) {
+            my $i = first { $indices[$_] == $i0 } 0..$#indices;
+            move(\@indices, $i, $nums[$i0]);
+        }
     }
     return @nums[@indices];
 }
