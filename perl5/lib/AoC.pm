@@ -6,7 +6,7 @@ use feature ':5.36';
 package AoC {
     use List::AllUtils qw( minmax );
     use File::Slurp ();
-    use Quantum::Superpositions ();
+    use Quantum::Superpositions qw( any all );
     use JSON::PP qw( decode_json );
 
     no warnings 'experimental::builtin';
@@ -18,6 +18,7 @@ package AoC {
         gist comb minToMax slip VeryLargeNum ArrayRef
         hashkeys arrayindices elems
         encode_json
+        any all
     >;
 
     use constant VeryLargeNum => 2**62;
@@ -46,7 +47,6 @@ package AoC {
         do {
             local $Exporter::ExportLevel = 2;
             List::AllUtils->import( grep { $_ ne 'all' && $_ ne 'any' } @List::AllUtils::EXPORT_OK );
-            Quantum::Superpositions->import(qw<any all>);
             File::Slurp->import(qw(slurp));
             JSON::PP->import(qw(decode_json));
         };
