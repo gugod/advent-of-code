@@ -7,14 +7,36 @@ sub main ( $input = "input" ) {
     my $world = parseInput($input);
 
     my $map = $world->{initialMap};
-    say visual($map);
 
+    my @Q = ([0,1]);
+    my $yGoal = elems($map) - 1;
+    my $xGoal = elems($map->[0]) - 2;
+
+    my $goal = undef;
     my $round = 0;
-    while ($round++ < 10) {
+    while (!defined($goal) && @Q > 0 && $round < 1000) {
+        say 0+@Q;
+        $round++;
         $map = nextMinute($map);
-        say "~~ $round";
-        say visual($map);
+
+        my @Q2;
+        for my $p ( @Q ) {
+            my ($y,$x) = @$p;
+
+            if ($y == $yGoal && $x == $xGoal) {
+                $goal = $round - 1;
+                last;
+            }
+
+            push @Q2, [$y, $x]   if $map->[$y][$x][0]   eq '.';
+            push @Q2, [$y, $x+1] if $map->[$y][$x+1][0] eq '.';
+            push @Q2, [$y, $x-1] if $map->[$y][$x-1][0] eq '.';
+            push @Q2, [$y+1, $x] if $map->[$y+1][$x][0] eq '.';
+            push @Q2, [$y-1, $x] if $map->[$y-1][$x][0] eq '.';
+        }
+        @Q = @Q2;
     }
+    say $goal;
 }
 main(@ARGV);
 exit();
@@ -42,10 +64,10 @@ sub nextMinute ($worldMap0) {
 
     for my $y ( 0 ... $yEnd ) {
         for my $x ( 0 ... $xEnd ) {
-            my $s = ['.'];
+            my $s = [];
 
             if ( $worldMap0->[$y][$x][0] eq '#' ) {
-                $s = ['#'];
+                push @$s, '#';
             } else {
                 my $east = ($x -1 + 1) % ($xEnd - 1) + 1;
                 my $west = ($x - 1 - 1) % ($xEnd - 1) + 1;
@@ -56,10 +78,10 @@ sub nextMinute ($worldMap0) {
                 push(@$s, '<') if any(@{ $worldMap0->[$y][ $east ] }) eq '<';
                 push(@$s, '^') if any(@{ $worldMap0->[ $south ][$x] }) eq '^';
                 push(@$s, 'v') if any(@{ $worldMap0->[ $north ][$x] }) eq 'v';
-                shift(@$s) if @$s > 1;
             }
+            push @$s, '.' if @$s == 0;
 
-            $worldMap1->[$y][$x] = $s;
+            $worldMap1->[$y][$x] = $s // ['.'];
         }
     }
 
