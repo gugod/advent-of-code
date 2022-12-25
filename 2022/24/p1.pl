@@ -13,25 +13,40 @@ sub main ( $input = "input" ) {
 
     my %memo;
     # round y x
-    $memo{"0 0 1"} = 1;
+    $memo{"0 1"} = 0;
+    my @Q = ([0, 1]);
 
     my $goal = undef;
     my $round = 0;
     while (!defined($goal)) {
         my $prevRound = $round++;
         $map = nextMinute($map);
+        say "~~ $round";
 
-        for my $y ( arrayindices $map ) {
-            for my $x ( arrayindices $map->[0] ) {
+        my %Q2;
+        for my $p (@Q) {
+            my ($y, $x) = @$p;
+            for my $q ([$y,$x+1], [$y,$x-1], [$y+1,$x], [$y-1,$x], [$y,$x]) {
+                my ($y,$x) = @$q;
+                next unless 0 <= $y < @$map && 0 <= $x < @{$map->[0]};
                 next unless $map->[$y][$x][0] eq '.';
+                $Q2{"$y $x"} //= [$y, $x];
+            }
+        }
+        @Q = values %Q2;
 
-                for my $q ([$y,$x+1], [$y,$x-1], [$y+1,$x+1], [$y-1,$x], [$y,$x]) {
-                    my ($_y, $_x) = @$q;
-                    if ($memo{"$prevRound $_y $_x"}) {
-                        $memo{"$round $y $x"} = 1;
-                        $goal = $round if $y == $yGoal && $x == $xGoal;
-                        last;
-                    }
+        for my $p (@Q) {
+            my ($y,$x) = @$p;
+            if ($y == $yGoal && $x == $xGoal) {
+                $goal = $round;
+                last;
+            }
+
+            for my $q ([$y,$x+1], [$y,$x-1], [$y+1,$x], [$y-1,$x], [$y,$x]) {
+                my ($_y, $_x) = @$q;
+                if (($memo{"$_y $_x"} //-1) == $prevRound) {
+                    $memo{"$y $x"} = $round;
+                    last;
                 }
             }
         }
