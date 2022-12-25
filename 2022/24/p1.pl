@@ -8,34 +8,36 @@ sub main ( $input = "input" ) {
 
     my $map = $world->{initialMap};
 
-    my @Q = ([0,1]);
     my $yGoal = elems($map) - 1;
     my $xGoal = elems($map->[0]) - 2;
 
+    my %memo;
+    # round y x
+    $memo{"0 0 1"} = 1;
+
     my $goal = undef;
     my $round = 0;
-    while (!defined($goal) && @Q > 0 && $round < 1000) {
-        say 0+@Q;
-        $round++;
+    while (!defined($goal)) {
+        my $prevRound = $round++;
         $map = nextMinute($map);
 
-        my @Q2;
-        for my $p ( @Q ) {
-            my ($y,$x) = @$p;
+        for my $y ( arrayindices $map ) {
+            for my $x ( arrayindices $map->[0] ) {
+                next unless $map->[$y][$x][0] eq '.';
 
-            if ($y == $yGoal && $x == $xGoal) {
-                $goal = $round - 1;
-                last;
+                for my $q ([$y,$x+1], [$y,$x-1], [$y+1,$x+1], [$y-1,$x], [$y,$x]) {
+                    my ($_y, $_x) = @$q;
+                    if ($memo{"$prevRound $_y $_x"}) {
+                        $memo{"$round $y $x"} = 1;
+                        $goal = $round if $y == $yGoal && $x == $xGoal;
+                        last;
+                    }
+                }
             }
-
-            push @Q2, [$y, $x]   if $map->[$y][$x][0]   eq '.';
-            push @Q2, [$y, $x+1] if $map->[$y][$x+1][0] eq '.';
-            push @Q2, [$y, $x-1] if $map->[$y][$x-1][0] eq '.';
-            push @Q2, [$y+1, $x] if $map->[$y+1][$x][0] eq '.';
-            push @Q2, [$y-1, $x] if $map->[$y-1][$x][0] eq '.';
         }
-        @Q = @Q2;
     }
+    die "No ?" unless defined $goal;
+
     say $goal;
 }
 main(@ARGV);
