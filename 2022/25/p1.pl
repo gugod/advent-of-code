@@ -82,8 +82,6 @@ package SnafuDigit {
 }
 
 package Snafu {
-    use Data::Dumper qw(Dumper);
-
     use AoC;
     use overload '""' => \&Str;
 
