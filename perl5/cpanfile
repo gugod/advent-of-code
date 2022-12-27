@@ -4,3 +4,4 @@ requires 'List::AllUtils';
 requires 'File::Slurp';
 requires 'Math::Vector::Real';
 requires 'Quantum::Superpositions';
+requires 'Data::RoundRobin';
