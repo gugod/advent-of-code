@@ -15,7 +15,7 @@ sub main ( $input = "input" ) {
     );
 
     $world->run(2022);
-    say $world->towerHeight();
+    say $world->towerHeight() + $world->{"_truncatedMapHeight"};
 }
 
 package World {
@@ -34,6 +34,8 @@ package World {
 
             "_width" => 7,
             "_height" => 1,
+
+            "_truncatedMapHeight" => 0,
             "_map" => [
                 [0,0,0,0,0,0,0] # index $i: at height $i above ground.
             ],
@@ -78,7 +80,7 @@ package World {
             }
         } else {
             if ($base != 0) {
-                for my $y ($base .. elems($self->{_map})-1 ) {
+                for my $y (0 .. elems($self->{_map})-1 ) {
                     my $row = $self->{_map}[$y];
                     push @screen, [map { $charMap{$_} } @$row];
                 }
@@ -142,12 +144,22 @@ package World {
 
         }
         $self->consolidate();
+
+        $self->shrinkMap() if elems($self->{"_map"}) > 200;
     }
 
     sub expendMap ($self, $rock) {
         # Make map taller so the top part is 3 empty rows + the height of $rock.
         my $d = $self->towerHeight() + 3 + $rock->height() - $self->height() - 1;
         push @{$self->{_map}}, map { [(0) x $self->width() ] } (0..$d);
+    }
+
+    sub shrinkMap ($self) {
+        my $y = first { all(@{ $self->{_map}[$_] }) == 1 } (arrayindices $self->{_map});
+        if ($y) {
+            splice(@{$self->{_map}}, 0, $y);
+            $self->{"_truncatedMapHeight"} += $y;
+        }
     }
 
     sub jetpush ($self) {
