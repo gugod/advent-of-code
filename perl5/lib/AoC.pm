@@ -8,6 +8,7 @@ package AoC {
     use File::Slurp ();
     use Quantum::Superpositions qw( any all );
     use JSON::PP qw( decode_json );
+    use Math::Vector::Real ();
 
     no warnings 'experimental::builtin';
     use builtin qw( blessed );
@@ -49,6 +50,7 @@ package AoC {
             List::AllUtils->import( grep { $_ ne 'all' && $_ ne 'any' } @List::AllUtils::EXPORT_OK );
             File::Slurp->import(qw(slurp));
             JSON::PP->import(qw(decode_json));
+            Math::Vector::Real->import("V");
         };
         do {
             local $Exporter::ExportLevel = 1;
