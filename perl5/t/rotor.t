@@ -3,18 +3,16 @@ use AoC;
 
 subtest "rotor", sub {
     subtest "chunked(2)", sub {
-        my @x = qw(1 2 3 4 5);
-        my @y = rotor 2 => 0, @x;
-        is \@y, [
+        my $y = rotor 2 => 0, [qw(1 2 3 4 5)];
+        is $y, [
             [1,2],
             [3,4],
         ];
     };
 
     subtest "windowed(3)", sub {
-        my @x = (1..5);
-        my @y = rotor 3 => -2, @x;
-        is \@y, [
+        my $y = rotor 3 => -2, [1..5];
+        is $y, [
             [ 1,2,3 ],
             [ 2,3,4 ],
             [ 3,4,5 ],
@@ -23,18 +21,16 @@ subtest "rotor", sub {
 };
 
 subtest "chunked(2)", sub {
-    my @x = qw(1 2 3 4 5);
-    my @y = chunked 2, @x;
-    is \@y, [
+    my $y = chunked 2, [ 1, 2, 3, 4, 5 ];
+    is $y, [
         [1,2],
         [3,4],
     ];
 };
 
 subtest "windowed(3)", sub {
-    my @x = qw(1 2 3 4 5);
-    my @y = windowed 3, @x;
-    is \@y, [
+    my $y = windowed 3, [ 1, 2, 3, 4, 5 ];
+    is $y, [
         [1,2,3],
         [2,3,4],
         [3,4,5],

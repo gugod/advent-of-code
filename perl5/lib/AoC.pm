@@ -71,22 +71,22 @@ package AoC {
         return $count;
     }
 
-    sub rotor ( $size = 1, $skip = 0, @xs ) {
+    sub rotor ( $size = 1, $skip = 0, $xs = [] ) {
         my @ys;
         my $end = $size - 1;
-        while ($end < @xs) {
-            push @ys, [ @xs[ ($end - $size + 1) .. $end ] ];
+        while ($end < @$xs) {
+            push @ys, [ @$xs[ ($end - $size + 1) .. $end ] ];
             $end += $size + $skip;
         }
-        return @ys;
+        return \@ys;
     }
 
-    sub windowed ( $size, @xs ) {
-        rotor $size => -1 * ($size-1), @xs
+    sub windowed ( $size, $xs ) {
+        rotor $size => -1 * ($size-1), $xs
     }
 
-    sub chunked ( $size, @xs ) {
-        rotor $size => 0, @xs
+    sub chunked ( $size, $xs ) {
+        rotor $size => 0, $xs
     }
 
     sub chars ( $s ) {
@@ -108,7 +108,7 @@ package AoC {
     }
 
     sub comb ( $pattern, $s ) {
-        $s =~ m/($pattern)/g;
+        [$s =~ m/($pattern)/g]
     }
 
     sub minToMax {
