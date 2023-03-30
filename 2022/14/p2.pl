@@ -20,7 +20,7 @@ sub buildTerrain ( $input ) {
         "blockers" => {},
     };
     for my $line (@$input) {
-        for (rotor 2 => -1, rotor 2 => 0, comb qr/[0-9]+/, $line) {
+        for (slip rotor 2 => -1, rotor 2 => 0, comb qr/[0-9]+/, $line) {
             my ($begin, $end) = @$_;
             for my $x (minToMax( $begin->[0], $end->[0] )) {
                 for my $y (minToMax( $begin->[1], $end->[1] )) {
