@@ -1,0 +1,36 @@
+!yamlscript/v0
+
+defn strIndices(s):
+  range:
+    count: s
+
+defn isNonZero(x):
+  not: x == 0
+
+defn combDigits(s):
+  filter isNonZero:
+    map:
+      (fn [i] (strToNum (subs s i (+ i 1))))
+      (strIndices s)
+
+strToNumMapping =:
+  (hash-map "1" 1, "2" 2, "3" 3, "4" 4, "5" 5, "6" 6, "7" 7, "8" 8, "9" 9)
+
+defn strToNum(s): (or (get strToNumMapping s) 0)
+
+defn caliberation(line):
+  (let [digits (combDigits line)]
+    (+ (* 10 (first digits)) (last digits)))
+
+defn isEmpty(xs): (== (count xs) 0)
+
+defn sum(xs total):
+  (if (isEmpty xs)
+     total
+     (sum (rest xs) (+ (first xs) total)))
+
+defn main():
+  ->:
+    (map caliberation (list "sdpgz3five4seven6fiveh" "876mbxbrntsfm"))
+    (sum 0)
+    (say)
