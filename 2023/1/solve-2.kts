@@ -25,10 +25,7 @@ val sumOfAll = File("input").readLines().map { line ->
     val calibers = line.indices.flatMap { i ->
         listOf(i+1, i+3, i+4, i+5)
             .filter { it <= line.lastIndex + 1 }
-            .map { j ->
-                val s = line.substring(i,j)
-                englishDigits.getOrDefault(s, 0)
-            }
+            .map { englishDigits.getOrDefault(line.substring(i,it), 0) }
             .filter { it != 0 }
     }
     10 * calibers.first() + calibers.last()
