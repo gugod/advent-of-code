@@ -1,100 +1,72 @@
 #!/usr/bin/env ys-0
 
-defn main(& args):
-  terrain =: init(args.0 || "input")
-  regions =: terrain:regions
-  println:
-    total-price: terrain regions
-
-defn init(file="input"):
-  file:slurp:lines
+defn main(input='input'): !:say
+  terrain =: input:slurp:lines
+  regions =: regions(terrain)
+  total-price: terrain regions
 
 defn total-price(terrain regions):
-  sum:
-    map _ regions:
-      fn(r): price(terrain r)
-
-defn price(terrain region):
-  =>: region:len * perimeter(terrain region)
+  defn price(region):
+    region.# * perimeter(terrain region)
+  sum: regions.map(price)
 
 defn perimeter(terrain region):
-  sum:
-    map _ region:seq:
-      fn(yx):
-        len:
-          grep _ yx:nesw:
-            fn(it): region.get(it):not
+  region.map(
+    \(nesw(_).remove(\(region.get(_))).#)
+  ):sum
 
-defn regions(terrain):
-  first:
-    reduce _ [[] hash-set()] terrain:coordinates:
-      fn([regions visited] yx):
-        if visited.get(yx):
-          vector: regions visited
-          else:
-            region =: terrain.region(terrain.at(yx) vector(yx))
-            vector: regions.conj(region) visited.union(region)
+dirs =::
+- [1, 0]
+- [-1, 0]
+- [0, 1]
+- [0, -1]
 
-defn region(terrain marker s0 r0=set(nil) visited0=set(nil)):
+defn nesw([y x]):
+  for [d0 d1] dirs:
+    vector:
+      (y + d0)
+      (x + d1)
+
+defn regions(terrain): !:first
+  coordinates =:
+    ? for
+      y terrain.#:range,
+      x terrain.0.#:range
+    : vector(y x)
+
+  reduce _ [[] \{}] coordinates:
+    fn([regions visited] yx):
+      if visited.get(yx):
+        vector: regions visited
+        else:
+          y x =: yx
+          region =: terrain.region(terrain.$y.$x [yx])
+          vector regions.conj(region): visited + region
+
+defn region(terrain, marker, s0):
   # Return a set of coordinates (r) that is in the same region as yx0
   #   marker -- the wanted marker.
   #       s0 -- a stack of coordinates that is yet to be explored.
   #       r0 -- the accumulated set that is the region (the result)
-  #  visited -- a hash-set to keep track of visited coordinates.
-  yx =: s0:last
-  if s0:empty?:
-    then: r0
-    else:
-      visited =: visited0.conj(yx)
-      if terrain.at(yx) == marker:
-        then:
-          new-neighbours =: terrain.neighbours-of(yx).exclude(visited).exclude(s0:set)
-          s =:
-            if new-neighbours:nil?:
-              then: s0:drop-last
-              else: s0:drop-last.concat(new-neighbours)
-          when s:len > s:set:len:
-            die: str(visited s:vec)
-          r =: r0.conj(yx)
-          recur: terrain marker s r visited0.conj(yx)
-        else:
-          recur: terrain marker s0:drop-last r0 visited0.conj(yx)
+  #       v0 -- a hash-set to keep track of visited coordinates.
+  loop s0 s0, r0 \{}, v0 \{}:
+    yx =: s0:first
+    y x =: yx
+    defn ok([y x]):
+      (-1 < y < terrain.#) &&
+      (-1 < x < terrain.#)
 
-# Returns a new set that is the set-difference of (s1 - s2)
-defn exclude(s1 s2):
-  set:
-    grep _ s1:
-      fn(e): (not-contains? s2 e)
-
-defn union(s1 s2):
-  set:
-    concat: s1 s2
-
-defn not-contains?(coll key):
-  (comp not contains?): coll key
-
-defn nesw(yx):
-  for [d [[1 0] [-1 0] [0 1] [0 -1]]]: -[(yx.0 + d.0) (yx.1 + d.1)]
-
-defn neighbours-of(terrain yx):
-  grep yx:nesw:
-    fn(yx):
-      and:
-        <=: 0 yx.0 terrain:last-index
-        <=: 0 yx.1 terrain.0:last-index
-
-defn coordinates-of(terrain it):
-  grep _ terrain:coordinates:
-    fn([y x]): terrain.at(y x) == it
-
-defn at:
-  -[terrain yx]: terrain.nth(yx.0).nth(yx.1)
-  -[terrain y x]: terrain.nth(y).nth(x)
-
-defn indices(coll): coll:len:range
-
-defn last-index(coll): coll:len.--
-
-defn coordinates(terrain):
-  vec:
-    for [y terrain:indices x terrain.0:indices]: -[y x]
+    if s0.?:
+      then:
+        v =: v0.conj(yx)
+        if terrain.$y.$x == marker:
+          then:
+            s =: s0:rest +
+              nesw(yx)
+                .filter(ok)
+                .remove(\(_.in?(v)))
+                .remove(\(_.in?(s0)))
+            recur: s, r0.conj(yx), v0.conj(yx)
+          else:
+            recur: s0:rest, r0, v0.conj(yx)
+      else: r0

@@ -1,29 +1,23 @@
 #!/usr/bin/env ys-0
 
-defn main(& args):
-  input =: (or args.0 "input")
-  stones =: init(input)
-  println: stones.blink(25):len
+defn main(input='input'):
+  input:slurp:lines
+    .0:words.map(N)
+    .blink(25).#:say
 
-defn init(input):
-  input:slurp:lines:first.split(" ").map(fn([w] w:N))
-
-defn blink(stones n=1):
-  if n == 0:
-    then: stones
-    else:
-      blink _ n.--:
-        apply concat:
-          map _ stones:
-            fn(stone):
-              cond:
-                stone == 0:
-                  vector: 1
-
-                stone:S:len:even?:
-                  stone-left =: stone:str.subs(0 (stone:str:len / 2))
-                  stone-right =: stone:str.subs(stone:str:len / 2)
-                  vector: stone-left:N stone-right:N
-
-                else:
-                  vector: 2024 * stone
+defn blink(stones n):
+  if n.?:
+    recur _ n.--:
+      mapcat _ stones:
+        fn(stone):
+          str =: stone:S
+          len =: str.#
+          mid =: len / 2
+          cond:
+            stone == 0: vector(1)
+            len:even?:
+              vector:
+                str.subs(0 mid):N
+                str.subs(mid):N
+            else: vector(2024 * stone)
+    else: stones
